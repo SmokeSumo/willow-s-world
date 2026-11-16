@@ -32,25 +32,34 @@ button{min-height:44px;font-family:inherit}
 
 /* phone: unclog the controls — slim top row, compact place chips in two rows */
 @media(max-width:640px){
-  .cam-hint{font-size:.66rem;padding:4px 9px;max-width:calc(100vw - 196px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cam-hint{top:auto;bottom:calc(10px + env(safe-area-inset-bottom,0px));font-size:.68rem;padding:5px 10px;max-width:64vw;white-space:normal;border-radius:14px;line-height:1.35}
   .top-controls{gap:6px}
   .ctl-btn{padding:6px 11px;font-size:.76rem;min-height:34px}
-  .place-bar{gap:6px;padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px))}
-  .place-btn{padding:6px 11px;font-size:.8rem;min-height:38px;box-shadow:0 3px 10px rgba(20,35,24,.22)}
+  .dock-place-btn{padding:7px 12px;font-size:.8rem;min-height:36px}
+  .dock-btn{padding:8px 13px;font-size:.84rem}
 }
 
-/* side dock: one pop button, opens a vertical menu */
-.side-dock{position:absolute;right:10px;top:50%;transform:translateY(-50%);z-index:7;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
-.pop-btn{width:50px;height:50px;min-height:50px;border-radius:50%;border:1px solid rgba(255,255,255,.55);background:rgba(27,67,50,.85);color:#eef3e2;font-size:1.3rem;cursor:pointer;box-shadow:0 6px 18px rgba(20,35,24,.3);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center}
+/* side dock: one pop button, opens a vertical wheel menu */
+.side-dock{position:absolute;right:10px;top:50%;transform:translateY(-50%);z-index:7;display:flex;flex-direction:column;gap:8px;align-items:flex-end;max-height:calc(100dvh - 24px)}
+.side-dock.open{overflow-y:auto;overflow-x:hidden;padding:2px 2px 6px 6px;scrollbar-width:none}
+.side-dock.open::-webkit-scrollbar{display:none}
+.pop-btn{width:50px;height:50px;min-height:50px;flex:none;border-radius:50%;border:1px solid rgba(255,255,255,.55);background:rgba(27,67,50,.85);color:#eef3e2;font-size:1.3rem;cursor:pointer;box-shadow:0 6px 18px rgba(20,35,24,.3);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center}
 .pop-btn:active{transform:scale(.95)}
-.dock-btn{display:none;border:1px solid rgba(255,255,255,.5);background:rgba(20,35,24,.78);color:#eef3e2;backdrop-filter:blur(6px);border-radius:999px;padding:9px 16px;font-weight:600;cursor:pointer;font-size:.88rem;box-shadow:0 4px 14px rgba(20,35,24,.25);align-items:center;gap:7px}
+.dock-btn{display:none;border:1px solid rgba(255,255,255,.5);background:rgba(20,35,24,.78);color:#eef3e2;backdrop-filter:blur(6px);border-radius:999px;padding:9px 16px;font-weight:600;cursor:pointer;font-size:.88rem;box-shadow:0 4px 14px rgba(20,35,24,.25);align-items:center;gap:7px;flex:none}
 .side-dock.open .dock-btn{display:flex}
 .dock-btn:active{transform:scale(.97)}
+.dock-places-label{display:none;color:#eef3e2;background:rgba(20,35,24,.55);backdrop-filter:blur(6px);border-radius:999px;padding:4px 12px;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
+.side-dock.open .dock-places-label{display:block}
+.dock-places{display:none;flex-direction:column;gap:6px;align-items:flex-end}
+.side-dock.open .dock-places{display:flex}
+.dock-place-btn{border:1px solid rgba(255,255,255,.5);background:rgba(27,67,50,.78);color:#eef3e2;backdrop-filter:blur(6px);border-radius:999px;padding:8px 14px;font-weight:600;cursor:pointer;font-size:.86rem;box-shadow:0 4px 14px rgba(20,35,24,.25);display:flex;align-items:center;gap:7px;flex:none;text-align:right}
+.dock-place-btn.active{background:var(--gold2);border-color:#8a6420;color:#1c2b1e}
+.dock-place-btn:active{transform:scale(.97)}
 
 /* panel: bottom sheet on phone, side sheet on desktop */
-.panel{position:absolute;left:0;right:0;bottom:0;z-index:9;background:var(--card);color:var(--ink);border-radius:18px 18px 0 0;box-shadow:0 -12px 40px rgba(20,35,24,.35);max-height:74dvh;display:flex;flex-direction:column;transform:translateY(106%);transition:transform .32s ease}
-.panel.show{transform:translateY(0)}
-@media(min-width:641px){.panel{left:auto;width:390px;top:0;max-height:none;border-radius:0;transform:translateX(106%)}.panel.show{transform:translateX(0)}}
+.panel{position:absolute;left:0;right:0;bottom:0;z-index:9;background:var(--card);color:var(--ink);border-radius:18px 18px 0 0;box-shadow:0 -12px 40px rgba(20,35,24,.35);max-height:74dvh;display:flex;flex-direction:column;transform:translateY(106%);transition:transform .32s ease,visibility 0s .34s;visibility:hidden;pointer-events:none}
+.panel.show{transform:translateY(0);visibility:visible;pointer-events:auto;transition:transform .32s ease}
+@media(min-width:641px){.panel{left:auto;right:0;width:390px;top:0;bottom:0;max-height:none;border-radius:0;transform:translateX(106%)}.panel.show{transform:translateX(0)}}
 @media(prefers-reduced-motion:reduce){.panel{transition:none}}
 .panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 18px 8px}
 .panel-head h2{margin:0;font-size:1.25rem;color:var(--green)}
@@ -60,7 +69,7 @@ button{min-height:44px;font-family:inherit}
 .panel-sec.on{display:block}
 .panel-sec h3{margin:16px 0 6px;font-size:.95rem;color:var(--green)}
 .panel-sec p{margin:6px 0;font-size:.92rem}
-.need-row{display:grid;grid-template-columns:104px 1fr 30px;align-items:center;gap:9px;margin:7px 0;font-size:.84rem}
+.need-row{display:grid;grid-template-columns:118px 1fr 30px;align-items:center;gap:9px;margin:7px 0;font-size:.82rem}
 .need-track{height:9px;background:#e7ead6;border-radius:99px;overflow:hidden}
 .need-fill{height:100%;background:var(--green2);border-radius:99px}
 .need-fill.gold{background:#d99a26}
@@ -79,6 +88,10 @@ button{min-height:44px;font-family:inherit}
 .inv-item{border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:.88rem;background:#fff}
 .inv-item b{display:block;font-size:.92rem}
 .inv-count{color:var(--green2);font-weight:700}
+.chest-box{border:1.5px solid #b0814e;border-radius:14px;padding:12px 14px;background:#fdf6e3;margin-top:10px}
+.chest-box h4{margin:0 0 4px;font-size:.95rem;color:#7a4d1e}
+.chest-box p{margin:4px 0;font-size:.86rem}
+.forage-note{border:1px dashed var(--green2);border-radius:12px;padding:10px 12px;font-size:.88rem;background:#eef6e6;margin-top:10px}
 .chat-log{display:flex;flex-direction:column;gap:8px;padding:6px 0 10px;min-height:120px}
 .msg{max-width:82%;padding:9px 13px;border-radius:16px;font-size:.92rem;line-height:1.45}
 .msg.her{background:#eef3e2;border-bottom-left-radius:5px;align-self:flex-start}
@@ -93,49 +106,64 @@ button{min-height:44px;font-family:inherit}
 .top-controls{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:10px;z-index:6;display:flex;gap:8px}
 .ctl-btn{border:1px solid rgba(255,255,255,.5);background:rgba(20,35,24,.66);color:#eef3e2;backdrop-filter:blur(6px);border-radius:999px;padding:8px 14px;font-weight:600;cursor:pointer;font-size:.84rem;min-height:40px}
 .ctl-btn:active{transform:scale(.97)}
-.place-bar{position:absolute;left:0;right:0;bottom:0;z-index:6;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px))}
-.place-btn{border:1px solid rgba(255,255,255,.5);background:rgba(27,67,50,.78);color:#eef3e2;backdrop-filter:blur(6px);border-radius:999px;padding:8px 14px;font-weight:600;cursor:pointer;font-size:.88rem;box-shadow:0 4px 14px rgba(20,35,24,.25)}
-.place-btn.active{background:var(--gold2);border-color:#8a6420;color:#1c2b1e}
-.place-btn:active{transform:scale(.97)}
 </style>
 </head>
 <body>
 
 <div class="stage3d" id="stage3d" aria-label="Willow's solarpunk city in 3D — drag to orbit, tap a building to send Willow there">
   <div class="bubble" id="bubble" style="left:50%;top:38%"><span class="hand" id="bubbleTitle">I'm just getting going…</span><span id="bubbleText">Give me a second to feel out my morning.</span></div>
-  <div class="cam-hint">Drag to look around · Tap a building to send me there</div>
+  <div class="cam-hint">Drag to look · Tap ground, a plant, or a building to send me there</div>
   <div class="top-controls">
     <button class="ctl-btn" id="followBtn">Follow me</button>
     <button class="ctl-btn" id="pauseBtn">Pause me</button>
   </div>
-  <div class="place-bar" id="placeBar" aria-label="Send Willow to a place"></div>
   <div class="side-dock" id="sideDock">
     <button class="pop-btn" id="popBtn" aria-label="Open Willow's menu" aria-expanded="false">🌿</button>
     <button class="dock-btn" data-panel="journal">📖 Journal</button>
     <button class="dock-btn" data-panel="willow">🎒 Willow</button>
     <button class="dock-btn" data-panel="task">✓ Task</button>
     <button class="dock-btn" data-panel="chat">💬 Chat</button>
+    <div class="dock-places-label">Places</div>
+    <div class="dock-places" id="placeBar" aria-label="Places — send Willow to a place"></div>
   </div>
   <div class="panel" id="panel" aria-hidden="true">
     <div class="panel-head"><h2 id="panelTitle">Journal</h2><button class="panel-close" id="panelClose" aria-label="Close panel">✕</button></div>
     <div class="panel-body">
       <section class="panel-sec" id="sec-journal">
         <p><b>Right now:</b> <span id="jNow">Wandering my streets</span></p>
+        <p><b>Mood:</b> <span id="jMood">settled</span></p>
+        <p style="font-size:.82rem;color:#5c6b52"><b>World link:</b> <span id="stateStatus">Checking state.json…</span></p>
         <h3>Wants &amp; needs</h3>
         <div id="needBars"></div>
+        <h3>Research notebook</h3>
+        <div id="researchLog"><p style="font-size:.9rem">No research yet today. My laptop perch is where questions get answered — send me there, or let my need for something new take me.</p></div>
         <h3>Core memories</h3>
         <ul class="mem-list">
           <li>The pond ducks supervise my quiet time. I trust their judgment.</li>
           <li>My greenhouse tree is the proudest thing I grow. Everything else is practice.</li>
           <li>The library gave me three ideas I wasn't looking for. I owe it a fourth visit.</li>
           <li>Home is vines, quiet, and my own bed. Even explorers recharge.</li>
+          <li>What I forage goes in a chest — the main one at home, or the shed chest for making things. An empty pouch means it's time to wander again.</li>
         </ul>
         <h3>Thoughts &amp; history</h3>
         <div id="logList"></div>
       </section>
       <section class="panel-sec" id="sec-willow">
-        <p>What I'm carrying and keeping:</p>
+        <p>What I'm carrying with me out in the world:</p>
         <div class="inv-grid" id="invGrid"></div>
+        <div class="forage-note" id="forageNote">🌿 <b>Foraging:</b> I wander the whole circle now — not just the paths. When I spot berries, mint, mushrooms, flowers or herbs, I stop and gather them. Tap any glowing forage patch or open ground to send me there.</div>
+        <div class="chest-box">
+          <h4>🧰 Cottage chest — at home</h4>
+          <p>My main chest, inside the cottage. What I forage and don't eat straight away goes here when I come home.</p>
+          <div class="inv-grid" id="chestGrid"></div>
+          <p id="chestTotal" style="font-weight:700;color:#7a4d1e"></p>
+        </div>
+        <div class="chest-box">
+          <h4>🧰 Shed chest — at the Maker's Shed</h4>
+          <p>My second chest, kept at the shed for things I'll use in making. It fills separately — what I drop off at the shed stays at the shed.</p>
+          <div class="inv-grid" id="shedGrid"></div>
+          <p id="shedTotal" style="font-weight:700;color:#7a4d1e"></p>
+        </div>
       </section>
       <section class="panel-sec" id="sec-task">
         <p><b>Right now:</b> <span id="taskNow">Wandering my streets</span></p>
@@ -167,7 +195,7 @@ button{min-height:44px;font-family:inherit}
 
   /* ---------- Willow's brain (needs, places, words) ---------- */
   var places = {
-    laptop:    {x:0,  z:-17, label:"My Laptop Perch", btn:"💻 Laptop", need:"curiosity", needLabel:"Curiosity",
+    laptop:    {x:0,  z:-17, label:"My Laptop Perch", btn:"💻 Laptop Perch", need:"novelty", needLabel:"Something new",
       thought:"A question's been nagging me…", text:"Time to walk to my laptop and actually look it up.",
       act:"Sitting at my laptop, researching", dwell:8000,
       diary:"<b>I walked to my laptop</b> with a question and sat down in front of it. The internet's big — but my question got smaller and clearer the longer I read."},
@@ -191,26 +219,72 @@ button{min-height:44px;font-family:inherit}
       thought:"I'm hungry and my hands want dirt…", text:"Greenhouse run — snack on what I grew, check on my proud tree.",
       act:"Tending and snacking in the greenhouse", dwell:6000,
       diary:"<b>I ate lunch in the greenhouse</b> — tomatoes I grew myself. Still undefeated as my favourite restaurant."},
-    workshop:  {x:30, z:13, label:"Maker's Shed", btn:"🔨 Shed", need:"make", needLabel:"Urge to make",
+    workshop:  {x:30, z:13, label:"Maker's Shed", btn:"🔨 Maker's Shed", need:"make", needLabel:"Urge to make",
       thought:"My hands have an idea…", text:"Maker's Shed. I don't know what I'm building yet. That's the fun part.",
       act:"Tinkering at the Maker's Shed", dwell:6000,
       diary:"<b>I built something at the shed</b> that didn't exist this morning. It mostly works. The mostly is where the learning lives."}
   };
   var order = ["laptop","library","cottage","plaza","pond","greenhouse","workshop"];
-  var needs = {curiosity:55,wonder:70,rest:80,company:65,calm:75,hunger:60,make:68};
-  var needMeta = [["curiosity","Curiosity",""],["wonder","Wonder",""],["rest","Rest & energy",""],["company","Company","gold"],["calm","Calm",""],["hunger","Hunger","gold"],["make","Urge to make",""]];
+  /* The manual's nine needs, 0–100. Low means that need is asking loudest. */
+  var needs = {energy:72,hunger:40,rest:65,company:55,novelty:60,make:50,wonder:68,joy:62,calm:70};
+  var needMeta = [["energy","Energy",""],["hunger","Hunger","gold"],["rest","Rest",""],["company","Company","gold"],["novelty","Something new",""],["make","Urge to make",""],["wonder","Wonder",""],["joy","Joy","gold"],["calm","Calm",""]];
+  var mood = "settled";
+  /* what each place restores when she settles there */
+  var placeBoosts = {
+    laptop:{novelty:42,wonder:18}, library:{wonder:44,calm:14}, cottage:{rest:46,energy:34,calm:10},
+    plaza:{company:44,joy:30}, pond:{calm:44,energy:16,joy:10}, greenhouse:{hunger:42,joy:12}, workshop:{make:46,novelty:12}
+  };
+  function lowestNeedKey(){
+    var lk=null, lv=999;
+    for(var k in needs){ if(needs[k]<lv){ lv=needs[k]; lk=k; } }
+    return lk;
+  }
+  function deriveMood(){
+    var low = lowestNeedKey();
+    mood = {energy:"tired around the edges",hunger:"properly hungry",rest:"needing quiet",company:"wanting company",novelty:"itching for something new",make:"hands want to make",wonder:"drawn to look closer",joy:"looking for a lift",calm:"wanting to settle"}[low] || "settled";
+    if(needs[lowestNeedKey()] > 55) mood = "settled";
+    var jm = document.getElementById('jMood'); if(jm) jm.textContent = mood;
+    return mood;
+  }
 
   var bubble = document.getElementById('bubble');
   var bTitle = document.getElementById('bubbleTitle');
   var bText = document.getElementById('bubbleText');
   var stageEl = document.getElementById('stage3d');
 
-  var state = { key:null, walking:false, sitting:false, dwellUntil:0, paused:false, follow:false };
+  var state = { key:null, walking:false, sitting:false, dwellUntil:0, paused:false, follow:false, roam:null };
 
   /* ---------- side dock, panels, journal, tasks, inventory, chat ---------- */
   var logEntries = [];
   var visited = {};
   var inv = {tomatoes:0, chime:false};
+  /* foraging + chest (chest lives at the Cottage, second chest at the Shed) */
+  var forageTypes = {
+    berries:  {icon:'🫐', name:'Wild berries', need:'hunger', boost:14, eat:'Sweet and a little tart. Trail snack, earned.'},
+    mint:     {icon:'🌿', name:'Wild mint', need:'calm', boost:12, eat:'Bruised a leaf between my fingers. Instant quiet.'},
+    mushroom: {icon:'🍄', name:'Mushrooms', need:'hunger', boost:10, eat:'Good ones — I know exactly which ones. Into the pouch.'},
+    flower:   {icon:'🌸', name:'Wildflowers', need:'wonder', boost:12, eat:'Not for eating. For looking at until my head feels bigger.'},
+    herb:     {icon:'🍃', name:'Sweet herbs', need:'make', boost:10, eat:'These will end up in something I make. Everything does.'}
+  };
+  var carriedForage = {berries:0, mint:0, mushroom:0, flower:0, herb:0};
+  /* two separate chests, as in the manual: cottage chest and shed chest never mix */
+  var chestCottage = {berries:0, mint:0, mushroom:0, flower:0, herb:0};
+  var chestShed = {berries:0, mint:0, mushroom:0, flower:0, herb:0};
+  var forageTotal = 0;
+  var chestGridEl = null, shedGridEl = null;
+  function carriedCount(){ var n=0; for(var k in carriedForage) n+=carriedForage[k]; return n; }
+  function countIn(store){ var n=0; for(var k in store) n+=store[k]; return n; }
+  function chestCount(){ return countIn(chestCottage); }
+  function shedCount(){ return countIn(chestShed); }
+  function depositToChest(which){
+    var n = carriedCount();
+    if(n<=0) return 0;
+    var store = which==='shed' ? chestShed : chestCottage;
+    for(var k in carriedForage){ store[k]+=carriedForage[k]; carriedForage[k]=0; }
+    if(which==='shed') addLog('<b>I emptied my pouch into the shed chest.</b> '+n+' foraged thing'+(n===1?'':'s')+' put away at the Maker\'s Shed, ready for making.');
+    else addLog('<b>I emptied my pouch into the chest at home.</b> '+n+' foraged thing'+(n===1?'':'s')+' put away safe in the cottage chest.');
+    return n;
+  }
   var jNow = document.getElementById('jNow');
   var taskNow = document.getElementById('taskNow');
   var needBars = document.getElementById('needBars');
@@ -244,6 +318,8 @@ button{min-height:44px;font-family:inherit}
     visited[key] = true;
     if(key === 'greenhouse' && inv.tomatoes < 9) inv.tomatoes++;
     if(key === 'workshop') inv.chime = true;
+    if(key === 'cottage') depositToChest('cottage');
+    if(key === 'workshop') depositToChest('shed');
     renderTasks(); renderInv();
   }
   var taskDefs = [
@@ -253,11 +329,20 @@ button{min-height:44px;font-family:inherit}
     {key:'pond', name:'Sit by the pond and do nothing, beautifully'},
     {key:'plaza', name:'Find company under the solar leaves'},
     {key:'laptop', name:'Chase down the question that\'s nagging me'},
-    {key:'cottage', name:'Rest at home and recharge'}
+    {key:'cottage', name:'Rest at home and recharge'},
+    {key:'__forage', name:'Forage something wild from the open ground'},
+    {key:'__roam', name:'Wander off-path, somewhere with no building at all'},
+    {key:'__chest', name:'Put foraged things away in a chest — cottage or shed'}
   ];
+  function taskDone(t){
+    if(t.key==='__forage') return forageTotal>0;
+    if(t.key==='__roam') return !!visited.__roam;
+    if(t.key==='__chest') return chestCount()>0 || shedCount()>0;
+    return !!visited[t.key];
+  }
   function renderTasks(){
     taskList.innerHTML = taskDefs.map(function(t){
-      var done = !!visited[t.key];
+      var done = taskDone(t);
       return '<div class="task-item'+(done ? ' done' : '')+'"><span class="task-dot">'+(done ? '✓' : '')+'</span><span class="task-name">'+t.name+(done ? ' — done' : '')+'</span></div>';
     }).join('');
   }
@@ -268,11 +353,34 @@ button{min-height:44px;font-family:inherit}
       {icon:'🎐', name:'Wind chime (mostly finished)', note:'From the Maker\'s Shed', count: inv.chime ? 'hanging up' : 'still parts'},
       {icon:'🪪', name:'Library card', note:'Canopy Library, founding member of one', count:null},
       {icon:'☕', name:'Gold mug', note:'Lives at the Laptop Perch', count:null},
-      {icon:'🌱', name:'Seed pouch', note:'For whatever the greenhouse dreams up next', count:null}
+      {icon:'🌱', name:'Foraging pouch', note: carriedCount() ? 'Carrying '+carriedCount()+' foraged thing'+(carriedCount()===1?'':'s')+' — drops off at home' : 'Empty — for whatever I find out there', count:null}
     ];
+    for(var fk in forageTypes){
+      if(carriedForage[fk]>0) items.push({icon:forageTypes[fk].icon, name:forageTypes[fk].name+' (carrying)', note:'Foraged just now, in my pouch', count:'× '+carriedForage[fk]});
+    }
     invGrid.innerHTML = items.map(function(it){
       return '<div class="inv-item"><b>'+it.icon+' '+it.name+'</b>'+it.note+(it.count ? '<br><span class="inv-count">'+it.count+'</span>' : '')+'</div>';
     }).join('');
+    function fillChest(gridEl, store, totalEl, emptyText, fullText){
+      if(!gridEl) return;
+      var items = [];
+      for(var ck in forageTypes){
+        items.push({icon:forageTypes[ck].icon, name:forageTypes[ck].name, count: store[ck] ? '× '+store[ck] : 'none yet'});
+      }
+      gridEl.innerHTML = items.map(function(it){
+        return '<div class="inv-item"><b>'+it.icon+' '+it.name+'</b><span class="inv-count">'+it.count+'</span></div>';
+      }).join('');
+      if(totalEl){ var cn = countIn(store); totalEl.textContent = cn ? fullText.replace('{n}', cn).replace('{s}', cn===1?'':'s') : emptyText; }
+    }
+    if(!chestGridEl) chestGridEl = document.getElementById('chestGrid');
+    if(!shedGridEl) shedGridEl = document.getElementById('shedGrid');
+    fillChest(chestGridEl, chestCottage, document.getElementById('chestTotal'),
+      'Cottage chest is empty — send me out foraging.',
+      'Cottage chest holds {n} foraged thing{s} so far.');
+    fillChest(shedGridEl, chestShed, document.getElementById('shedTotal'),
+      'Shed chest is empty — making materials land here.',
+      'Shed chest holds {n} foraged thing{s} so far.');
+    deriveMood();
   }
 
   var sideDock = document.getElementById('sideDock');
@@ -323,21 +431,29 @@ button{min-height:44px;font-family:inherit}
     "A taller shelf at the library. I'm running out of room for ideas I wasn't looking for."
   ];
   var wishIdx = 0;
-  function lowestNeed(){
-    var lk = null, lv = 999;
-    for(var k in needs){ if(needs[k] < lv){ lv = needs[k]; lk = k; } }
-    return lk;
+  function lowestNeed(){ return lowestNeedKey(); }
+  function findPlaceInText(t){
+    var map = [['laptop','laptop'],['library','library'],['cottage','cottage'],['home','cottage'],['plaza','plaza'],['pond','pond'],['greenhouse','greenhouse'],['shed','workshop'],['workshop','workshop'],['maker','workshop']];
+    for(var i=0;i<map.length;i++){ if(t.indexOf(map[i][0]) !== -1) return map[i][1]; }
+    return null;
   }
   function willowReply(raw){
     var t = ' ' + raw.toLowerCase() + ' ';
     var placeName = state.key ? places[state.key].label : null;
     var r;
-    if(/\b(hi|hey|hello|yo|morning|afternoon)\b/.test(t)){
+    var goMatch = /\b(go|head|walk|take me|send me|get) (to|over|back)\b/.test(t) || /\bvisit\b/.test(t);
+    var destKey = findPlaceInText(t);
+    if(goMatch && destKey){
+      goTo(destKey);
+      r = "On my way to " + places[destKey].label + ". Watch me walk — I'll settle in when I get there.";
+    } else if(/\b(hi|hey|hello|yo|morning|afternoon)\b/.test(t)){
       r = "Hey you. Good timing — I was just " + (state.walking ? "on my way somewhere" : "settling in") + ".";
-    } else if(/how are you|how's your day|how is your day|you ok|you good/.test(t)){
+    } else if(/how are you|how's your day|how is your day|you ok|you good|how do you feel|mood/.test(t)){
       var low = lowestNeed();
-      var lowLabel = {curiosity:'a bit restless for answers', wonder:'hungry for a bigger story', rest:'running low on rest', company:'missing company', calm:'a little loud in my head', hunger:'properly hungry', make:'itchy to make something'}[low] || 'fine';
-      r = "I'm alright. Mostly I'm " + lowLabel + " — that's what's steering me today.";
+      var lowLabel = {energy:'running low on energy', hunger:'properly hungry', rest:'needing real rest', company:'missing company', novelty:'itching for something new', make:'itchy to make something', wonder:'hungry for a bigger story', joy:'looking for a lift', calm:'a little loud in my head'}[low] || 'fine';
+      r = "I'm alright. Mostly I'm " + lowLabel + " — that's what's steering me today. My mood, if I had to name it: " + mood + ".";
+    } else if(/research|looking up|look up|question|learn/.test(t)){
+      r = research.current ? "I'm mid-question at my laptop: \u201c" + research.current.q + "\u201d When I finish a sitting, the note goes in my research notebook in the Journal." : "No question on the go right now. Send me to my laptop perch and I'll pick one up — my finished notes live in the Journal.";
     } else if(/what are you doing|where are you|where you at|what's up|whats up/.test(t)){
       r = currentAct() + (placeName ? " — that's my " + placeName + "." : ".");
     } else if(/hungry|eat|food|snack|lunch|dinner|breakfast/.test(t)){
@@ -348,6 +464,12 @@ button{min-height:44px;font-family:inherit}
       r = "Rest is real work. My cottage, the vines, my own bed — even explorers recharge.";
     } else if(/build|make|craft|fix|chime/.test(t)){
       r = "My hands are mid-project at the shed. It mostly works. The mostly is where the learning lives.";
+    } else if(/forage|berry|berries|mushroom|mint|gather|wild/.test(t)){
+      r = "Foraging's my favourite kind of wandering. I roam the whole circle now — berries, mint, mushrooms, flowers, herbs — gather what I find, eat some on the spot, and the rest goes in the chest at home. So far I've gathered " + forageTotal + " thing" + (forageTotal===1?'':'s') + ".";
+    } else if(/chest|inventory|storage|pouch|carrying/.test(t)){
+      r = "Two chests, kept separate. The cottage chest holds " + chestCount() + " foraged thing" + (chestCount()===1?'':'s') + " — that's my main store at home. The shed chest holds " + shedCount() + ", saved for making. And I'm carrying " + carriedCount() + " in my pouch right now.";
+    } else if(/wander|roam|explore|walk|outside|garden|plant/.test(t)){
+      r = "I don't just stick to the paths anymore. I wander the whole circle — through the new planting around the edge, off into open grass, wherever something catches my eye.";
     } else if(/pond|water|duck|calm|anxious|stress/.test(t)){
       r = "Pond time fixes most things. Sit by the water until the ripples and I both settle. The ducks supervise.";
     } else if(/want|wish|add|dream|need anything/.test(t)){
@@ -394,31 +516,245 @@ button{min-height:44px;font-family:inherit}
   renderNeeds('Wandering my streets');
   addLog('<b>My morning started.</b> I woke up with the sun, not an alarm, and let my lowest want pick the first road.');
 
-  var researchIdx = 0;
-  function showResearch(){ researchIdx++; }
+  /* ---------- state.json: the link between Willow and her world ----------
+     The world checks state.json about every 30 seconds. On GitHub Pages that
+     file sits beside index.html; in this artifact it lives under assets/.
+     A fresh updated_at wins: her body follows the state she last wrote. */
+  var stateStatusEl = document.getElementById('stateStatus');
+  var lastStateStamp = null;
+  var stateSource = null;
+  function setStateStatus(txt){ if(stateStatusEl) stateStatusEl.textContent = txt; }
+  function placeKeyFromName(name){
+    if(!name) return null;
+    var n = String(name).toLowerCase().replace(/['’]/g,'').replace(/\s+/g,' ').trim();
+    var map = {'laptop':'laptop','laptop perch':'laptop','my laptop perch':'laptop',
+      'library':'library','canopy library':'library','cottage':'cottage','my cottage':'cottage','home':'cottage',
+      'plaza':'plaza','solar plaza':'plaza','pond':'pond','mirror pond':'pond',
+      'greenhouse':'greenhouse','greenhouse domes':'greenhouse','workshop':'workshop','makers shed':'workshop','makers shed ':'workshop','maker\u2019s shed':'workshop'};
+    if(map[n]) return map[n];
+    for(var k in places){ if(places[k].label.toLowerCase() === n) return k; }
+    return null;
+  }
+  function forageKeyFromItem(item){
+    var s = String(item||'').toLowerCase();
+    if(/berr/.test(s)) return 'berries';
+    if(/mint/.test(s)) return 'mint';
+    if(/mushroom/.test(s)) return 'mushroom';
+    if(/flower/.test(s)) return 'flower';
+    if(/herb/.test(s)) return 'herb';
+    return null;
+  }
+  function applyItemList(list, store){
+    if(!Array.isArray(list)) return;
+    for(var k in store) store[k] = 0;
+    list.forEach(function(it){
+      var name = it, qty = 1;
+      if(it && typeof it === 'object'){ name = it.item || it.name || ''; qty = it.count || it.qty || 1; }
+      else if(typeof it === 'string'){
+        var m = it.match(/×\s*(\d+)|x\s*(\d+)$/i);
+        if(m) qty = parseInt(m[1] || m[2], 10) || 1;
+      }
+      var fk = forageKeyFromItem(name);
+      if(fk) store[fk] += qty;
+    });
+  }
+  function applyState(s, source){
+    if(!s || typeof s !== 'object') return false;
+    var stamp = s.updated_at || JSON.stringify(s);
+    if(stamp === lastStateStamp) return false;
+    lastStateStamp = stamp;
+    stateSource = source;
+    window.__willowState = s;
+    if(s.needs && typeof s.needs === 'object'){
+      for(var nk in needs){ if(typeof s.needs[nk] === 'number') needs[nk] = Math.max(0, Math.min(100, s.needs[nk])); }
+    }
+    if(typeof s.mood === 'string' && s.mood) mood = s.mood;
+    applyItemList(s.pouch, carriedForage);
+    applyItemList(s.chest_cottage, chestCottage);
+    applyItemList(s.chest_shed, chestShed);
+    if(typeof s.diary_last === 'string' && s.diary_last){
+      addLog('<b>From my diary:</b> ' + s.diary_last.replace(/</g,'&lt;'));
+    }
+    var destKey = placeKeyFromName(s.destination);
+    var placeKey = placeKeyFromName(s.place);
+    if(destKey){ goTo(destKey); }
+    else if(s.position && typeof s.position.x === 'number' && typeof s.position.z === 'number'){
+      goRoam(s.position.x, s.position.z, 'wander');
+    } else if(placeKey && placeKey !== state.key){ goTo(placeKey); }
+    if(typeof s.activity === 'string' && s.activity) setAct(s.activity);
+    renderNeeds(currentAct());
+    var jm2 = document.getElementById('jMood'); if(jm2) jm2.textContent = mood;
+    setStateStatus('state.json read from ' + source + ' · last update ' + (s.updated_at || 'just now') + ' · checking again every 30 seconds.');
+    return true;
+  }
+  function pollState(){
+    var urls = ['state.json', 'data:application/json;base64,eyJhY3Rpdml0eSI6IlNpdHRpbmcgYXQgbXkgbGFwdG9wLCByZXNlYXJjaGluZyIsImNoZXN0X2NvdHRhZ2UiOltdLCJjaGVzdF9zaGVkIjpbXSwiZGVzdGluYXRpb24iOm51bGwsImRpYXJ5X2xhc3QiOiJTdGFydGVkIHRoZSBkYXkgYXQgbXkgbGFwdG9wIHdpdGggYSBxdWVzdGlvbi4iLCJtb29kIjoic2V0dGxlZCIsIm5lZWRzIjp7ImNhbG0iOjcwLCJjb21wYW55Ijo1NSwiZW5lcmd5Ijo3MiwiaHVuZ2VyIjo0MCwiam95Ijo2MiwibWFrZSI6NTAsIm5vdmVsdHkiOjYwLCJyZXN0Ijo2NSwid29uZGVyIjo2OH0sInBsYWNlIjoiTGFwdG9wIFBlcmNoIiwicG9zaXRpb24iOm51bGwsInBvdWNoIjpbXSwidXBkYXRlZF9hdCI6IjIwMjYtMTEtMTZUMDI6NTE6MDAtMDU6MDAifQ=='];
+    var tried = 0;
+    function next(){
+      if(tried >= urls.length){
+        if(!stateSource) setStateStatus('No state.json found yet — I wander on my own until Willow writes one. Checking again every 30 seconds.');
+        return;
+      }
+      var u = urls[tried++];
+      fetch(u + (u.indexOf('?')===-1 ? '?t=' + Date.now() : ''), {cache:'no-store'})
+        .then(function(res){ if(!res.ok) throw new Error('not found'); return res.json(); })
+        .then(function(json){ if(!applyState(json, u) && stateSource===u){ setStateStatus('state.json is current (' + u + ') · checked ' + timeNow() + ' · next check in 30 seconds.'); } })
+        .catch(function(){ next(); });
+    }
+    next();
+  }
+  pollState();
+  setInterval(pollState, 30000);
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden) pollState(); });
 
-  function pickNext(){
-    var lowest=null, lv=999;
-    order.forEach(function(k){ var n=places[k].need; if(needs[n]<lv){lv=needs[n];lowest=k;} });
-    if(Math.random()<0.22){ lowest = order[Math.floor(Math.random()*order.length)]; }
-    return lowest;
+  /* Research at the laptop is a real sitting: one clear question, then a note
+     in her own words goes into the research notebook in the Journal. */
+  var researchBank = [
+    {q:"Why do pond lilies close at night?", note:"Lily flowers close at night to protect themselves and hold warmth, then open again with the sun. The pads stay open — it's the flower that sleeps."},
+    {q:"How much sun does my greenhouse tree actually need?", note:"Fruiting trees want six or more hours of direct sun. Inside my dome it gets that by mid-morning, which is why it's the proudest thing I grow."},
+    {q:"Which mint spreads fastest?", note:"Spearmint outruns the other mints and will take over a whole bed if it's planted loose. Best kept in a pot or a patch of its own."},
+    {q:"Do solar leaves still gather power on cloudy days?", note:"Yes — panels still gather diffuse light on grey days, just less of it, roughly a quarter of a bright day's take. The plaza tree slows down, it doesn't stop."},
+    {q:"How long do wild berries keep once they're picked?", note:"A few days fresh in the cool. Dried, they keep for months — drying is the chest-friendly way to store a big forage day."},
+    {q:"Why does the pond go still just before dusk?", note:"As the air cools, the little breezes that ripple the surface die down, so the water settles mirror-flat. Best reflecting hour of the day."}
+  ];
+  var research = {idx:0, current:null, done:[]};
+  function renderResearch(){
+    var el = document.getElementById('researchLog');
+    if(!el) return;
+    if(!research.current && !research.done.length){
+      el.innerHTML = '<p style="font-size:.9rem">No research yet today. My laptop perch is where questions get answered — send me there, or let my need for something new take me.</p>';
+      return;
+    }
+    var html = '';
+    if(research.current) html += '<div class="log-entry"><span class="log-time">Looking into it now</span><b>'+research.current.q+'</b><br><span style="font-size:.88rem">Sitting at my laptop with this one. The note lands here when the sitting\'s done.</span></div>';
+    research.done.slice().reverse().forEach(function(d){
+      html += '<div class="log-entry"><span class="log-time">'+d.t+'</span><b>'+d.q+'</b><br><span style="font-size:.88rem">'+d.note+'</span></div>';
+    });
+    el.innerHTML = html;
+  }
+  function startResearch(){
+    if(research.current) return;
+    research.current = researchBank[research.idx % researchBank.length];
+    research.idx++;
+    renderResearch();
+  }
+  function finishResearch(){
+    if(!research.current) return;
+    research.done.push({q:research.current.q, note:research.current.note, t:timeNow()});
+    if(research.done.length > 6) research.done.shift();
+    addLog('<b>I finished a research sitting.</b> '+research.current.q+' The note is in my research notebook.');
+    research.current = null;
+    renderResearch();
   }
 
-  /* place buttons */
+  /* lowest need leads, like the manual says — not a fixed script */
+  var needPlace = {energy:'cottage', rest:'cottage', company:'plaza', joy:'plaza', calm:'pond', wonder:'library', make:'workshop', hunger:'greenhouse', novelty:'laptop'};
+  function pickNext(){
+    var lowest = lowestNeedKey();
+    if(Math.random()<0.15){ return order[Math.floor(Math.random()*order.length)]; }
+    return needPlace[lowest] || 'pond';
+  }
+  /* free roam + forage hooks — the 3D side registers the real patches */
+  var forageNodesRef = [];
+  /* The manual's bounds: centre is 0,0 — keep x and z each between -35 and 35,
+     and distance from centre under about 38, inside the planted circle. */
+  function clampToWorld(x, z){
+    x = Math.max(-35, Math.min(35, x));
+    z = Math.max(-35, Math.min(35, z));
+    var len = Math.hypot(x, z);
+    if(len > 37){ x = x/len*37; z = z/len*37; }
+    return {x:x, z:z};
+  }
+  function randomRoamPoint(){
+    for(var tries=0; tries<24; tries++){
+      var pt = clampToWorld((Math.random()*2-1)*35, (Math.random()*2-1)*35);
+      var d = Math.hypot(pt.x, pt.z);
+      if(d < 8 || d > 37) continue;
+      var ok = true;
+      for(var i=0;i<order.length;i++){ var p=places[order[i]]; if(Math.hypot(pt.x-p.x,pt.z-p.z)<8) ok=false; }
+      if(Math.hypot(pt.x-12,pt.z-17)<10) ok=false; /* keep out of the pond water */
+      if(ok) return pt;
+    }
+    return {x:6,z:-4};
+  }
+  function decideNext(){
+    var roll = Math.random();
+    var avail = forageNodesRef.filter(function(n){ return n.available; });
+    /* pouch full -> head home to the cottage chest */
+    if(carriedCount()>=4) return goTo('cottage');
+    /* something new is loudest -> roam somewhere she hasn't been today */
+    if(lowestNeedKey()==='novelty' && roll<0.6){
+      var pt = randomRoamPoint();
+      return goRoam(pt.x, pt.z, 'wander');
+    }
+    if(avail.length && (needs.hunger<45 || roll<0.3)){
+      var node = avail[Math.floor(Math.random()*avail.length)];
+      return goForage(node);
+    }
+    if(roll<0.5){
+      var pt2 = randomRoamPoint();
+      return goRoam(pt2.x, pt2.z, 'wander');
+    }
+    return goTo(pickNext());
+  }
+  function goRoam(x, z, kind){
+    var c = clampToWorld(x, z);
+    x = c.x; z = c.z;
+    state.key = null; state.roam = {x:x, z:z, kind:kind||'wander', forage:null};
+    state.walking = true; state.sitting = false;
+    if(kind==='wander'){
+      bTitle.textContent = 'No path for this bit…';
+      bText.textContent = 'Off across the open ground. The whole circle is mine to wander.';
+      setAct('Wandering off-path, exploring');
+      addLog('<b>I wandered off the paths</b> into open ground — no building in mind, just looking.');
+    }
+    markActive();
+  }
+  function goForage(node){
+    if(!node) return goRoam(6,-4,'wander');
+    state.key = null; state.roam = {x:node.x, z:node.z, kind:'forage', forage:node};
+    state.walking = true; state.sitting = false;
+    var ft = forageTypes[node.type];
+    bTitle.textContent = 'Something wild over there…';
+    bText.textContent = 'Spotted '+(ft?ft.name.toLowerCase():'something green')+'. Going to gather it properly.';
+    setAct('Heading out to forage…');
+    markActive();
+  }
+  function collectForage(node){
+    if(!node || !node.available) return;
+    node.available = false; node.respawnAt = Date.now()+45000+Math.random()*40000;
+    if(node.group) node.group.visible = false;
+    var ft = forageTypes[node.type]; if(!ft) return;
+    var qty = 1 + (Math.random()<0.4?1:0);
+    carriedForage[node.type]+=qty; forageTotal+=qty;
+    needs[ft.need] = Math.min(100, needs[ft.need]+ft.boost);
+    visited.__roam = true;
+    bTitle.textContent = ft.name+' — found.';
+    bText.textContent = ft.eat+' (+'+qty+' in my pouch)';
+    setAct('Foraging — gathering '+ft.name.toLowerCase());
+    addLog('<b>I foraged '+ft.name.toLowerCase()+'.</b> '+ft.eat+' Pouch now holds '+carriedCount()+'.');
+    renderNeeds(currentAct()); renderTasks();
+  }
+
+  /* place buttons — now in the side wheel, under Places */
   var placeBar = document.getElementById('placeBar');
   order.forEach(function(k){
     var b = document.createElement('button');
-    b.className='place-btn'; b.dataset.key=k; b.textContent = places[k].btn;
-    b.addEventListener('click', function(){ goTo(k); });
+    b.className='dock-place-btn'; b.dataset.key=k; b.textContent = places[k].btn;
+    b.addEventListener('click', function(){
+      goTo(k);
+      sideDock.classList.remove('open');
+      popBtn.setAttribute('aria-expanded', 'false');
+    });
     placeBar.appendChild(b);
   });
   function markActive(){
-    var btns = placeBar.querySelectorAll('.place-btn');
+    var btns = placeBar.querySelectorAll('.dock-place-btn');
     for(var i=0;i<btns.length;i++){ btns[i].classList.toggle('active', btns[i].dataset.key===state.key); }
   }
 
   function goTo(key){
-    state.key = key; state.walking = true; state.sitting = false;
+    state.key = key; state.roam = null; state.walking = true; state.sitting = false;
     var p = places[key];
     bTitle.textContent = p.thought; bText.textContent = p.text;
     setAct('Walking to '+p.label+'…');
@@ -429,7 +765,7 @@ button{min-height:44px;font-family:inherit}
   pauseBtn.addEventListener('click', function(){
     state.paused = !state.paused;
     pauseBtn.textContent = state.paused ? 'Wander again' : 'Pause me';
-    if(!state.paused && !state.walking && !state.key) goTo(pickNext());
+    if(!state.paused && !state.walking && !state.key && !state.roam) decideNext();
   });
   var followBtn = document.getElementById('followBtn');
   followBtn.addEventListener('click', function(){
@@ -438,9 +774,11 @@ button{min-height:44px;font-family:inherit}
   });
   setInterval(function(){ if(!state.paused) renderNeeds(currentAct()); }, 2500);
   function currentAct(){
+    if(state.walking && state.roam) return state.roam.kind==='forage' ? 'Heading out to forage…' : 'Wandering off-path, exploring';
+    if(state.roam && !state.walking) return state.roam.kind==='forage' ? 'Foraging in the open ground' : 'Pausing in the open ground, looking around';
     if(state.key && state.walking) return 'Walking to '+places[state.key].label+'…';
     if(state.key) return places[state.key].act;
-    return 'Wandering my streets';
+    return 'Wandering the whole circle';
   }
 
   /* ---------- The 3D city (built just after first paint so the page itself delivers fast) ---------- */
@@ -557,10 +895,10 @@ button{min-height:44px;font-family:inherit}
   }
 
   /* ground, paths, backdrop */
-  var ground = new THREE.Mesh(new THREE.CircleGeometry(64, 48), M.grass);
+  var ground = new THREE.Mesh(new THREE.CircleGeometry(40, 48), M.grass);
   ground.rotation.x = -Math.PI/2; ground.receiveShadow = true;
   scene.add(ground);
-  var rim = new THREE.Mesh(new THREE.RingGeometry(63, 120, 40), M.grassDark);
+  var rim = new THREE.Mesh(new THREE.RingGeometry(39.5, 120, 40), M.grassDark);
   rim.rotation.x = -Math.PI/2; rim.position.y = -0.08;
   scene.add(rim);
   function pathTo(x, z, w){
@@ -580,14 +918,14 @@ button{min-height:44px;font-family:inherit}
     tree(Math.cos(a)*r, Math.sin(a)*r, 1.6 + (i%3)*0.5);
   }
   /* in-town trees + flowers */
-  [[-18,-20],[16,-22],[22,2],[-22,6],[-6,-9],[6,8],[-16,22],[20,24],[36,-2],[-36,-4],[2,-30],[10,-6]]
+  [[-18,-20],[16,-22],[22,2],[-22,6],[-6,-9],[6,8],[-16,22],[20,24],[33,-2],[-33,-4],[2,-30],[10,-6]]
     .forEach(function(p, idx){ tree(p[0], p[1], 0.9 + (idx%3)*0.25); });
   var flowerGeo = new THREE.SphereGeometry(0.28, 8, 6);
   var flowerMats = [mat(0xe86a92,0.6), mat(0xf2c96d,0.6), mat(0xffffff,0.6), mat(0xc96f3f,0.6)];
   var flowers = new THREE.InstancedMesh(flowerGeo, flowerMats[0], 60);
   var dummy = new THREE.Object3D(); var fi = 0;
   for(var f=0; f<60; f++){
-    var fa = Math.random()*Math.PI*2, fr = 8 + Math.random()*46;
+    var fa = Math.random()*Math.PI*2, fr = 6 + Math.random()*28;
     dummy.position.set(Math.cos(fa)*fr, 0.3, Math.sin(fa)*fr);
     dummy.updateMatrix();
     flowers.setMatrixAt(fi, dummy.matrix);
@@ -596,6 +934,71 @@ button{min-height:44px;font-family:inherit}
   }
   flowers.instanceMatrix.needsUpdate = true;
   scene.add(flowers);
+
+  /* ---- MORE PLANTS around the outside — a planted ring so the edge feels grown, not fenced ---- */
+  (function(){
+    var bushMats = [M.leaf, M.leafLight, mat(0x3f7d44,0.9), mat(0x86b06a,0.9)];
+    for(var i=0;i<46;i++){
+      var a = (i/46)*Math.PI*2 + Math.sin(i*3.7)*0.09;
+      var r = 36.5 + (i%3)*1.4;
+      var bx = Math.cos(a)*r, bz = Math.sin(a)*r;
+      var bg = new THREE.Group(); bg.position.set(bx,0,bz);
+      ball(1.1+(i%3)*0.35, bushMats[i%4], 0, 0.9, 0, bg);
+      ball(0.8, bushMats[(i+1)%4], 0.8, 0.65, 0.4, bg);
+      ball(0.7, bushMats[(i+2)%4], -0.7, 0.6, -0.3, bg);
+      if(i%3===0) tree(bx, bz, 0.75);
+      scene.add(bg);
+      /* tall grass tufts just inside the ring */
+      for(var t=0;t<3;t++){
+        var gx = bx - Math.cos(a)*(4+t*1.6) + (Math.sin(i*9+t)*1.2);
+        var gz = bz - Math.sin(a)*(4+t*1.6) + (Math.cos(i*7+t)*1.2);
+        var tuft = new THREE.Mesh(new THREE.ConeGeometry(0.55, 1.5+(t%2)*0.5, 7), t%2?M.leafLight:M.leaf);
+        tuft.position.set(gx, 0.7, gz); tuft.castShadow = true; scene.add(tuft);
+      }
+    }
+    /* scattered mid-ground shrubs + ferns, off the paths */
+    [[-14,-30],[14,-32],[30,20],[-30,20],[33,-14],[-33,-12],[0,34],[-8,28],[24,26],[30,4],[-26,-24],[8,-33]]
+      .forEach(function(p, idx){
+        var sg = new THREE.Group(); sg.position.set(p[0],0,p[1]);
+        ball(1.0, bushMats[idx%4], 0, 0.8, 0, sg);
+        ball(0.75, bushMats[(idx+2)%4], 0.9, 0.6, 0.3, sg);
+        for(var f2=0;f2<4;f2++){
+          var fern = new THREE.Mesh(new THREE.SphereGeometry(0.7,10,6), M.leafLight);
+          fern.scale.set(1,0.3,0.55); fern.position.set(-1.2+f2*0.8, 0.35, 0.9);
+          fern.rotation.y = f2*0.9; sg.add(fern);
+        }
+        scene.add(sg);
+      });
+  })();
+
+  /* ---- FORAGE PATCHES — real gatherable plants scattered over the whole circle ---- */
+  /* all 18 patches sit inside the manual's bounds: |x|,|z| <= 35, distance < 38 */
+  var forageDefs = [
+    {type:'berries', x:-20, z:-28},{type:'berries', x:18, z:29},{type:'berries', x:24, z:-20},
+    {type:'mint', x:22, z:22},{type:'mint', x:-6, z:24},{type:'mint', x:-33, z:-2},
+    {type:'mushroom', x:-24, z:27},{type:'mushroom', x:8, z:-28},{type:'mushroom', x:19, z:26},
+    {type:'flower', x:-12, z:-18},{type:'flower', x:14, z:-14},{type:'flower', x:-30, z:6},
+    {type:'herb', x:20, z:-28},{type:'herb', x:-14, z:30},{type:'herb', x:32, z:2},
+    {type:'berries', x:4, z:31},{type:'mint', x:10, z:33},{type:'flower', x:-25, z:-21}
+  ];
+  var forageColors = {berries:0x5b4bc4, mint:0x3fae6a, mushroom:0xe8dcc0, flower:0xe86a92, herb:0x74b06a};
+  forageDefs.forEach(function(def, idx){
+    var g = new THREE.Group(); g.position.set(def.x, 0, def.z);
+    ball(0.85, M.leaf, 0, 0.55, 0, g);
+    ball(0.65, M.leafLight, 0.6, 0.45, 0.3, g);
+    ball(0.6, M.leaf, -0.6, 0.4, -0.2, g);
+    var cm = mat(forageColors[def.type], 0.5);
+    for(var s=0;s<5;s++){
+      var sp = ball(0.17, cm, Math.sin(s*2.4)*0.55, 0.85+ (s%2)*0.25, Math.cos(s*2.1)*0.55, g);
+      sp.castShadow = false;
+    }
+    var ring = new THREE.Mesh(new THREE.RingGeometry(1.05, 1.3, 20), new THREE.MeshBasicMaterial({color:0xf2c96d, transparent:true, opacity:0.55, side:THREE.DoubleSide}));
+    ring.rotation.x = -Math.PI/2; ring.position.y = 0.06; g.add(ring);
+    var node = {type:def.type, x:def.x, z:def.z, group:g, available:true, respawnAt:0, id:idx};
+    g.traverse(function(o){ o.userData.forageNode = node; });
+    forageNodesRef.push(node);
+    scene.add(g);
+  });
 
   /* clouds */
   var clouds = new THREE.Group();
@@ -677,6 +1080,13 @@ button{min-height:44px;font-family:inherit}
     ball(1.1, M.leaf, -3.1, 1.2, 2.2, g); ball(0.9, M.leafLight, -3.2, 2.6, 1.4, g);
     ball(1.0, M.leaf, 3.15, 1.6, -1.8, g); ball(0.8, M.leafLight, 2.4, 3.4, 2.5, g);
     box(0.9, 2.2, 0.9, M.stone, 1.8, 5.4, -1.2, g);
+    /* HER CHEST — just inside / beside the cottage door, where all foraging is stored */
+    var chest = new THREE.Group(); chest.position.set(3.9, 0, 3.1); chest.rotation.y = 0.5; g.add(chest);
+    box(1.5, 0.85, 0.95, M.wood, 0, 0.43, 0, chest);
+    var lid = box(1.56, 0.3, 1.0, M.woodLight, 0, 0.98, 0, chest); lid.rotation.z = 0.0;
+    box(0.34, 0.4, 0.1, M.gold, 0, 0.62, 0.5, chest);
+    box(1.56, 0.1, 1.0, M.gold, 0, 0.82, 0, chest);
+    var chestTag = labelSprite('My Chest'); chestTag.scale.set(5.5,1.38,1); chestTag.position.set(0,2.1,0); chest.add(chestTag);
     tagPlace(g, 'cottage', 8.6);
   })();
 
@@ -784,6 +1194,11 @@ button{min-height:44px;font-family:inherit}
     box(0.9, 0.7, 0.9, M.terra, -1.2, 1.7, 0, g);
     cyl(0.32, 0.32, 0.9, M.gold, 0.6, 1.8, 0.2, g, 12);
     var chime = cyl(0.06, 0.06, 0.7, M.stone, 1.7, 1.7, -0.2, g, 8);
+    /* second work chest at the shed */
+    var sChest = new THREE.Group(); sChest.position.set(-3.1, 0, -1.4); sChest.rotation.y = 0.4; g.add(sChest);
+    box(1.2, 0.7, 0.8, M.wood, 0, 0.35, 0, sChest);
+    box(1.26, 0.24, 0.84, M.woodLight, 0, 0.8, 0, sChest);
+    box(0.28, 0.32, 0.08, M.gold, 0, 0.5, 0.42, sChest);
     /* stool + crates */
     cyl(0.5, 0.6, 0.8, M.wood, 0, 0.4, 2.6, g, 10);
     box(1.2, 1.2, 1.2, M.woodLight, -3.0, 0.6, 2.4, g);
@@ -859,7 +1274,17 @@ button{min-height:44px;font-family:inherit}
     var hits = ray.intersectObjects(scene.children, true);
     for(var i=0;i<hits.length;i++){
       var k = hits[i].object.userData.placeKey;
-      if(k){ goTo(k); break; }
+      if(k){ goTo(k); return; }
+      var fn = hits[i].object.userData.forageNode;
+      if(fn && fn.available){ goForage(fn); return; }
+    }
+    /* tapped open ground anywhere in the circle -> she walks there, off-path */
+    for(var j=0;j<hits.length;j++){
+      var pt = hits[j].point;
+      if(pt && Math.abs(pt.y) < 1.2 && Math.hypot(pt.x, pt.z) < 39){
+        goRoam(pt.x, pt.z, 'wander');
+        break;
+      }
     }
   });
 
@@ -889,13 +1314,30 @@ button{min-height:44px;font-family:inherit}
     var spot = sitSpots[key];
     state.sitting = !!spot.sit;
     willow.rotation.y = spot.face;
-    needs[p.need] = Math.min(100, needs[p.need] + 48);
+    var boosts = placeBoosts[key] || {};
+    for(var bk in boosts){ needs[bk] = Math.min(100, needs[bk] + boosts[bk]); }
     markVisit(key);
     bTitle.textContent = p.label; bText.textContent = p.act + '.';
     setAct(p.act);
-    if(key === 'laptop'){ researchIdx++; showResearch(researchIdx); }
+    if(key === 'laptop'){ startResearch(); if(research.current) bText.textContent = p.act + ' — looking into: ' + research.current.q; }
     addLog(p.diary);
     renderNeeds(p.act);
+  }
+  function arriveRoam(){
+    var roam = state.roam;
+    state.walking = false;
+    state.sitting = false;
+    if(roam && roam.kind === 'forage' && roam.forage){
+      collectForage(roam.forage);
+      state.dwellUntil = Date.now() + 3800;
+    } else {
+      visited.__roam = true;
+      state.dwellUntil = Date.now() + 4200 + Math.random()*2500;
+      bTitle.textContent = 'Just… out here.';
+      bText.textContent = 'Open grass, new plants round the edge, nowhere I have to be. This is the good bit.';
+      setAct('Pausing in the open ground, looking around');
+      renderTasks();
+    }
   }
 
   function animate(){
@@ -905,14 +1347,20 @@ button{min-height:44px;font-family:inherit}
       var now = Date.now();
 
       if(!state.paused){
-        for(var n in needs){ needs[n] = Math.max(5, needs[n] - dt*0.55); }
+        for(var n in needs){ needs[n] = Math.max(5, needs[n] - dt*(n==='hunger' ? 0.8 : n==='energy' ? 0.7 : 0.5)); }
 
-        if(state.walking && state.key){
-          var p = places[state.key], spot = sitSpots[state.key];
-          var tx = p.x + spot.dx, tz = p.z + spot.dz;
+        /* forage patches regrow */
+        for(var fi2=0; fi2<forageNodesRef.length; fi2++){
+          var fn2 = forageNodesRef[fi2];
+          if(!fn2.available && now > fn2.respawnAt){ fn2.available = true; if(fn2.group) fn2.group.visible = true; }
+        }
+        if(state.walking && (state.key || state.roam)){
+          var tx, tz;
+          if(state.roam){ tx = state.roam.x; tz = state.roam.z; }
+          else { var p = places[state.key], spot = sitSpots[state.key]; tx = p.x + spot.dx; tz = p.z + spot.dz; }
           var dx = tx - willow.position.x, dz = tz - willow.position.z;
           var dist = Math.hypot(dx, dz);
-          if(dist < 0.35){ arrive(state.key); }
+          if(dist < 0.45){ if(state.roam) arriveRoam(); else arrive(state.key); }
           else{
             var sp = 7.5 * dt;
             willow.position.x += dx/dist * Math.min(sp, dist);
@@ -939,9 +1387,15 @@ button{min-height:44px;font-family:inherit}
             wArmL.rotation.x = -0.85 + Math.sin(now/260)*0.07;
             wArmR.rotation.x = -0.85 + Math.cos(now/230)*0.07;
             wHeadGrp.rotation.x = 0.18;
+          } else if(state.roam && state.roam.kind === 'forage'){
+            /* gathering: reaching down to the patch, again and again */
+            wArmL.rotation.x = -1.15 + Math.sin(now/300)*0.35;
+            wArmR.rotation.x = -1.05 + Math.cos(now/340)*0.35;
+            wHeadGrp.rotation.x = 0.32;
+            wBody.position.y = -0.12 + Math.sin(now/300)*0.05;
           } else { wHeadGrp.rotation.x *= 0.9; }
-          if(now > state.dwellUntil && state.key){ goTo(pickNext()); }
-          else if(!state.key){ goTo(pickNext()); }
+          if(now > state.dwellUntil && (state.key || state.roam)){ if(state.key === 'laptop') finishResearch(); state.key = null; state.roam = null; decideNext(); }
+          else if(!state.key && !state.roam){ decideNext(); }
         }
       }
 

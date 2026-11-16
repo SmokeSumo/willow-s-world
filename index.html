@@ -66,6 +66,15 @@ button{min-height:44px;font-family:inherit}
 .panel-close{border:1px solid var(--line);background:#fff;color:var(--green);border-radius:50%;width:40px;height:40px;min-height:40px;font-size:1.05rem;cursor:pointer;flex:none}
 .panel-body{overflow-y:auto;padding:2px 18px calc(18px + env(safe-area-inset-bottom,0px));-webkit-overflow-scrolling:touch}
 .panel-sec{display:none}
+.jpage{display:none}
+.jpage.active{display:block}
+.jglossary{list-style:none;margin:10px 0;padding:0}
+.jglossary li{border-top:1px solid var(--line);padding:11px 2px}
+.jglossary li:first-child{border-top:none}
+.jglossary a{display:block;color:var(--green);font-weight:700;text-decoration:none;font-size:.98rem}
+.jglossary a span{display:block;font-weight:400;color:#5c6b52;font-size:.85rem;margin-top:2px}
+.jback{margin:2px 0 10px}
+.jback a{color:#5c6b52;font-size:.88rem;text-decoration:none}
 .panel-sec.on{display:block}
 .panel-sec h3{margin:16px 0 6px;font-size:.95rem;color:var(--green)}
 .panel-sec p{margin:6px 0;font-size:.92rem}
@@ -133,28 +142,66 @@ button{min-height:44px;font-family:inherit}
         <p><b>Right now:</b> <span id="jNow">Wandering my streets</span></p>
         <p><b>Mood:</b> <span id="jMood">settled</span></p>
         <p style="font-size:.82rem;color:#5c6b52"><b>World link:</b> <span id="stateStatus">Checking state.json…</span></p>
-        <h3>Wants &amp; needs</h3>
-        <div id="needBars"></div>
-        <h3>Research notebook</h3>
-        <div id="researchLog"><p style="font-size:.9rem">No research yet today. My laptop perch is where questions get answered — send me there, or let my need for something new take me.</p></div>
-        <h3>Recipe book — from the Library</h3>
-        <div id="cookBookLog"><p style="font-size:.9rem">Four recipes to start. She learns more by cooking, foraging and reading — nothing else is unlocked yet.</p></div>
-        <h3>Questions I'm carrying</h3>
-        <div id="questionLog"><p style="font-size:.9rem">Questions she wants real answers to. Willow looks them up properly and the answers land in her research notebook.</p></div>
-        <h3>What I'm wondering about</h3>
-        <div id="wonderLog"><p style="font-size:.9rem">A wonder starts in my notebook, then I go and research it, then I come back with the answer — and my honest verdict on whether it was worth wondering about.</p></div>
-        <h3>The ducks' verdicts</h3>
-        <div id="duckVerdictLog"><p style="font-size:.9rem">The ducks supervise everything I do, and they give verdicts. Dilly is bold, Mabel takes her time, Pip agrees with everyone. Their verdict is the law.</p></div>
-        <h3>Core memories</h3>
-        <ul class="mem-list">
-          <li>The pond ducks supervise my quiet time. I trust their judgment. Their verdict is the law — Dilly nods, Mabel takes her time, Pip agrees with everyone.</li>
-          <li>My greenhouse tree is the proudest thing I grow. Everything else is practice.</li>
-          <li>The library gave me three ideas I wasn't looking for. I owe it a fourth visit.</li>
-          <li>Home is vines, quiet, and my own bed. Even explorers recharge.</li>
-          <li>What I forage goes in a chest — the main one at home, or the shed chest for making things. An empty pouch means it's time to wander again.</li>
-        </ul>
-        <h3>Thoughts &amp; history</h3>
-        <div id="logList"></div>
+        <div class="jpage active" data-page="index">
+          <h3>Journal — contents</h3>
+          <p style="font-size:.88rem;color:#5c6b52">My notebook, in pages. Tap one and it opens — tap back and you are here again.</p>
+          <ul class="jglossary">
+            <li><a href="#" data-jpage="daily">Daily entries<span>Thoughts &amp; history — what I did, in order, newest first.</span></a></li>
+            <li><a href="#" data-jpage="needs">Wants &amp; needs<span>How I am doing right now — energy, hunger, rest, company, all of it.</span></a></li>
+            <li><a href="#" data-jpage="wonders">What I'm wondering about<span>Wonders, guesses, answers, and my honest verdict on each one.</span></a></li>
+            <li><a href="#" data-jpage="questions">Questions I'm carrying<span>Questions I want real answers to, for Willow to look up properly.</span></a></li>
+            <li><a href="#" data-jpage="research">Research notebook<span>What I found at my laptop — answers, written down so I keep them.</span></a></li>
+            <li><a href="#" data-jpage="recipes">Recipe book<span>From the Library — what I can cook, and what each meal needs.</span></a></li>
+            <li><a href="#" data-jpage="ducks">The ducks' verdicts<span>Dilly, Mabel and Pip supervise everything. Their verdict is the law.</span></a></li>
+            <li><a href="#" data-jpage="memories">Core memories<span>The things I do not want to forget, even on a tired day.</span></a></li>
+          </ul>
+        </div>
+        <div class="jpage" data-page="daily">
+          <p class="jback"><a href="#" data-jpage="index">← Back to contents</a></p>
+          <h3>Daily entries — thoughts &amp; history</h3>
+          <div id="logList"></div>
+        </div>
+        <div class="jpage" data-page="needs">
+          <p class="jback"><a href="#" data-jpage="index">← Back to contents</a></p>
+          <h3>Wants &amp; needs</h3>
+          <div id="needBars"></div>
+        </div>
+        <div class="jpage" data-page="wonders">
+          <p class="jback"><a href="#" data-jpage="index">← Back to contents</a></p>
+          <h3>What I'm wondering about</h3>
+          <div id="wonderLog"><p style="font-size:.9rem">A wonder starts in my notebook, then I go and research it, then I come back with the answer — and my honest verdict on whether it was worth wondering about.</p></div>
+        </div>
+        <div class="jpage" data-page="questions">
+          <p class="jback"><a href="#" data-jpage="index">← Back to contents</a></p>
+          <h3>Questions I'm carrying</h3>
+          <div id="questionLog"><p style="font-size:.9rem">Questions she wants real answers to. Willow looks them up properly and the answers land in her research notebook.</p></div>
+        </div>
+        <div class="jpage" data-page="research">
+          <p class="jback"><a href="#" data-jpage="index">← Back to contents</a></p>
+          <h3>Research notebook</h3>
+          <div id="researchLog"><p style="font-size:.9rem">No research yet today. My laptop perch is where questions get answered — send me there, or let my need for something new take me.</p></div>
+        </div>
+        <div class="jpage" data-page="recipes">
+          <p class="jback"><a href="#" data-jpage="index">← Back to contents</a></p>
+          <h3>Recipe book — from the Library</h3>
+          <div id="cookBookLog"><p style="font-size:.9rem">Four recipes to start. She learns more by cooking, foraging and reading — nothing else is unlocked yet.</p></div>
+        </div>
+        <div class="jpage" data-page="ducks">
+          <p class="jback"><a href="#" data-jpage="index">← Back to contents</a></p>
+          <h3>The ducks' verdicts</h3>
+          <div id="duckVerdictLog"><p style="font-size:.9rem">The ducks supervise everything I do, and they give verdicts. Dilly is bold, Mabel takes her time, Pip agrees with everyone. Their verdict is the law.</p></div>
+        </div>
+        <div class="jpage" data-page="memories">
+          <p class="jback"><a href="#" data-jpage="index">← Back to contents</a></p>
+          <h3>Core memories</h3>
+          <ul class="mem-list">
+            <li>The pond ducks supervise my quiet time. I trust their judgment. Their verdict is the law — Dilly nods, Mabel takes her time, Pip agrees with everyone.</li>
+            <li>My greenhouse tree is the proudest thing I grow. Everything else is practice.</li>
+            <li>The library gave me three ideas I wasn't looking for. I owe it a fourth visit.</li>
+            <li>Home is vines, quiet, and my own bed. Even explorers recharge.</li>
+            <li>What I forage goes in a chest — the main one at home, or the shed chest for making things. An empty pouch means it's time to wander again.</li>
+          </ul>
+        </div>
       </section>
       <section class="panel-sec" id="sec-fern">
         <p>What I'm carrying with me out in the world:</p>
@@ -428,6 +475,18 @@ button{min-height:44px;font-family:inherit}
   var panel = document.getElementById('panel');
   var panelTitle = document.getElementById('panelTitle');
   var panelNames = {journal:'Journal', fern:'Fern', task:'Task', chat:'Chat'};
+  function showJournalPage(name){
+    var sec = document.getElementById('sec-journal'); if(!sec) return;
+    var pages = sec.querySelectorAll('.jpage');
+    for(var i=0;i<pages.length;i++){ pages[i].classList.toggle('active', pages[i].getAttribute('data-page') === name); }
+    var body = sec.closest('.panel-body'); if(body) body.scrollTop = 0;
+  }
+  document.getElementById('sec-journal').addEventListener('click', function(e){
+    var a = e.target.closest ? e.target.closest('[data-jpage]') : null;
+    if(!a) return;
+    e.preventDefault();
+    showJournalPage(a.getAttribute('data-jpage'));
+  });
   function openPanel(name){
     panelTitle.textContent = panelNames[name] || 'Journal';
     ['journal','fern','task','chat'].forEach(function(n){
@@ -544,7 +603,7 @@ button{min-height:44px;font-family:inherit}
     return '';
   }
   var curiosityPool = [
-    "Do you think ducks dream? Mabel looks like she dreams in ripples.",
+    "Do you think ducks dream? I looked it up — they do, or something very like it, but only when they feel safe enough to close both eyes. Which duck do you think dreams most?",
     "What does rain smell like where you are? Here it smells like mint and hot stone.",
     "If I painted the skyline, what colour would you make the tallest tower?",
     "Do you think the library knows which book I need before I do? It keeps handing me the right ones.",
@@ -553,7 +612,7 @@ button{min-height:44px;font-family:inherit}
     "Do you ever talk to your plants? I talk to mine, and to the ducks, and honestly the ducks answer better.",
     "I found a stone today that looks exactly like a tiny mountain. Do you collect things too, or is that just me?",
     "What would you plant in my greenhouse if you had one bed all to yourself?",
-    "I wonder what the city sounds like at night, past the edge of my circle. Do you hear it from where you are?"
+    "I found out what the city sounds like at night — quieter, not silent, like the city is breathing in its sleep. I have not sat out and listened myself yet. Do you hear it from where you are?"
   ];
   function wonderAloud(){
     var fresh = curiosityPool.filter(function(q){ return recentAsks.indexOf(q) === -1; });
@@ -675,9 +734,15 @@ button{min-height:44px;font-family:inherit}
         "I am carrying a few wonders at the moment. The big one is: " + w0.q + " What do you think? Give me your guess before I go and look it up — I want to compare.",
         "Wondering is my favourite hobby, after foraging. Currently: " + w0.q + " I have a guess, I have a notebook, and I have a laptop. That is everything a wonder needs."
       ]);
+    } else if(/city.*night|night.*city|what does the city sound/.test(t)){
+      r = pick([
+        "It is not silent, just quieter. That is what I found when I looked it up — I have not sat out and listened all night yet, so I have not heard it for myself. The traffic thins out to a far-away hum, and now and then one car goes past in a long hush. Footsteps, wind in the vines, and underneath it all a low rumble, like the city is breathing in its sleep. Not loud and not empty. I thought I would be scared of it, and I am not. Do you hear it from where you are?",
+        "I did the research on that one — it is in my notebook, under wonders. The city at night is not silent, just quieter. Traffic thins to a hum, one car now and then in a long hush, footsteps, wind in the vines, and underneath it all a low rumble, like the city is breathing in its sleep. Like it is resting with one eye open, the same as the ducks. I like that.",
+        "The city at night? Quieter, not silent. A far-away hum where the traffic used to be, a car going past now and then, footsteps, the wind in the vines. And under all of it, a low rumble — the city breathing in its sleep. I want to sit out and listen for myself one night, properly. Until then, that is the answer I found. Would you stay up and listen with me?"
+      ]);
     } else if(/duck|dilly|mabel|pip/.test(t)){
       if(/feed/.test(t)){ r = fernActions.doFeedDucks ? fernActions.doFeedDucks() : "The ducks are out on the pond right now — I will feed them the moment I can get to them."; }
-      else if(/dream/.test(t)){ r = pick(["Do ducks dream? I am wondering that right now — it is in my notebook. Mabel looks like she dreams in ripples. Pip definitely dreams about berries. I am going to research it and come back with an answer, and my honest verdict.", "I wonder about that one a lot. If Mabel dreams, I bet she dreams about a pond with no me in it, just quiet water. I will look it up properly and tell you what I find."]); }
+      else if(/dream/.test(t)){ r = pick(["Yes — probably. Birds dream, or something very like it. They have REM sleep like we do, and sleeping finches replay their songs, and sleeping pigeons' flying-and-seeing parts light up. Ducks are cleverer than that, though — they can sleep with half their brain awake and one eye open, the ones on the edge of the row watching for trouble. They only dream properly, both halves asleep, when they feel safe. So if Dilly dreams, it means she trusts the pond. And me. I am keeping that. Which duck do you think dreams most — Dilly, Mabel, or Pip?", "I looked that one up, and the answer is in my notebook now. Ducks do dream — well, birds do, or something very like it. Finches replay their songs in their sleep. But ducks cheat a little: they sleep with half their brain awake and one eye open, so somebody is always on watch. They only dream properly when they feel safe enough to close both eyes. That is the part I like best. Which one do you think dreams most?", "Dilly twitches in her sleep, and Pip quacks in his sleep sometimes, so I was already sure — and the research says yes, probably. Birds have REM sleep like we do. Ducks just do it carefully: half the brain awake, one eye open, the edge ducks watching. Both halves asleep only when they feel safe. If Dilly is dreaming, she trusts the pond. Which duck do you think dreams most?"]); }
       else if(/favourite|favorite/.test(t)){ r = pick(["Mabel. She takes her time and she never rushes a verdict. Dilly's the bold one, Pip's the baby — but Mabel is my favourite.", "Pip, honestly. He's small and he follows everyone and he tries so hard. Don't tell Dilly."]); }
       else r = pick([
         "The ducks! Dilly, Mabel and Pip — they're in the pond right now, doing slow circles and judging me. Dilly's the white one, Mabel's brown, Pip's the small one. They supervise my quiet time, it's a whole thing.",
@@ -1114,16 +1179,18 @@ button{min-height:44px;font-family:inherit}
      guess:'I thought they would be a little bit sugary, like spun sugar. Or like the white part of a cloud sweet.',
      answer:'Clouds are just tiny water droplets and ice crystals floating in the air — so they would taste like plain water. Maybe a bit like rain.',
      verdict:'Kind of boring, honestly. I thought they would be sugary. They are just water. I am a little bit disappointed and I am keeping the note anyway.'},
-    {q:'Do ducks dream?', status:'wondering',
-     guess:'Mabel looks like she dreams in ripples. Pip definitely dreams about berries.',
-     answer:'', verdict:''},
+    {q:'Do ducks dream?', status:'answered',
+     guess:'Yes. Dilly twitches in her sleep, and Pip quacks in his sleep sometimes, so they must be dreaming about the pond.',
+     answer:'Birds do dream, or something very like it. They have REM sleep like we do, and sleeping finches replay their songs and sleeping pigeons\' flying-and-seeing parts of the brain light up. Ducks are cleverer about it than that, though — they can sleep with half their brain awake and one eye open, the ones on the edge of the row watching for trouble. They only dream properly, both halves asleep, when they feel safe.',
+     verdict:'So yes, probably — but only when they feel safe enough to close both eyes. If Dilly dreams, it means she trusts the pond. And me. I am keeping that.'},
     {q:'Why do lily pads float?', status:'researching',
      guess:'I think they are full of air, like little green boats.',
      answer:'Lily pads float because their leaves are full of tiny air spaces, and the top is waxy so water slides off instead of soaking in. They are built like boats.',
      verdict:'That one was worth it. They really are boats. I look at them differently now.'},
-    {q:'What does the city sound like at night, past the edge of my circle?', status:'wondering',
-     guess:'Probably humming. Everything out there hums, even the concrete.',
-     answer:'', verdict:''}
+    {q:'What does the city sound like at night, past the edge of my circle?', status:'answered',
+     guess:'I thought it would be silent. Or just wind, and the towers humming.',
+     answer:'It is not silent, just quieter. The traffic thins out to a far-away hum, and now and then one car goes past in a long hush. There are footsteps, and the wind in the vines, and the low rumble of the city underneath it all, like it is breathing in its sleep. That is what I found when I looked it up — I have not sat out and listened all night yet, so I have not heard it for myself.',
+     verdict:'Not loud and not empty. Like the city is resting with one eye open, the same as the ducks. I like that. I thought I would be scared of it, and I am not.'}
   ];
   function renderWonders(){
     if(typeof wonders === 'undefined' || !wonders) return;

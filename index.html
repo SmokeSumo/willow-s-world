@@ -29,6 +29,64 @@ button{min-height:44px;font-family:inherit}
 .bubble .hand{font-size:1.15rem;color:var(--green2);display:block;line-height:1.2}
 @media(max-width:560px){.bubble{max-width:170px;font-size:.78rem}}
 .cam-hint{position:absolute;left:10px;top:calc(10px + env(safe-area-inset-top,0px));z-index:4;background:rgba(20,35,24,.66);color:#eef3e2;font-size:.74rem;padding:5px 10px;border-radius:999px;pointer-events:none;max-width:62vw}
+
+/* phone: unclog the controls — slim top row, compact place chips in two rows */
+@media(max-width:640px){
+  .cam-hint{font-size:.66rem;padding:4px 9px;max-width:calc(100vw - 196px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .top-controls{gap:6px}
+  .ctl-btn{padding:6px 11px;font-size:.76rem;min-height:34px}
+  .place-bar{gap:6px;padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px))}
+  .place-btn{padding:6px 11px;font-size:.8rem;min-height:38px;box-shadow:0 3px 10px rgba(20,35,24,.22)}
+}
+
+/* side dock: one pop button, opens a vertical menu */
+.side-dock{position:absolute;right:10px;top:50%;transform:translateY(-50%);z-index:7;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.pop-btn{width:50px;height:50px;min-height:50px;border-radius:50%;border:1px solid rgba(255,255,255,.55);background:rgba(27,67,50,.85);color:#eef3e2;font-size:1.3rem;cursor:pointer;box-shadow:0 6px 18px rgba(20,35,24,.3);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center}
+.pop-btn:active{transform:scale(.95)}
+.dock-btn{display:none;border:1px solid rgba(255,255,255,.5);background:rgba(20,35,24,.78);color:#eef3e2;backdrop-filter:blur(6px);border-radius:999px;padding:9px 16px;font-weight:600;cursor:pointer;font-size:.88rem;box-shadow:0 4px 14px rgba(20,35,24,.25);align-items:center;gap:7px}
+.side-dock.open .dock-btn{display:flex}
+.dock-btn:active{transform:scale(.97)}
+
+/* panel: bottom sheet on phone, side sheet on desktop */
+.panel{position:absolute;left:0;right:0;bottom:0;z-index:9;background:var(--card);color:var(--ink);border-radius:18px 18px 0 0;box-shadow:0 -12px 40px rgba(20,35,24,.35);max-height:74dvh;display:flex;flex-direction:column;transform:translateY(106%);transition:transform .32s ease}
+.panel.show{transform:translateY(0)}
+@media(min-width:641px){.panel{left:auto;width:390px;top:0;max-height:none;border-radius:0;transform:translateX(106%)}.panel.show{transform:translateX(0)}}
+@media(prefers-reduced-motion:reduce){.panel{transition:none}}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 18px 8px}
+.panel-head h2{margin:0;font-size:1.25rem;color:var(--green)}
+.panel-close{border:1px solid var(--line);background:#fff;color:var(--green);border-radius:50%;width:40px;height:40px;min-height:40px;font-size:1.05rem;cursor:pointer;flex:none}
+.panel-body{overflow-y:auto;padding:2px 18px calc(18px + env(safe-area-inset-bottom,0px));-webkit-overflow-scrolling:touch}
+.panel-sec{display:none}
+.panel-sec.on{display:block}
+.panel-sec h3{margin:16px 0 6px;font-size:.95rem;color:var(--green)}
+.panel-sec p{margin:6px 0;font-size:.92rem}
+.need-row{display:grid;grid-template-columns:104px 1fr 30px;align-items:center;gap:9px;margin:7px 0;font-size:.84rem}
+.need-track{height:9px;background:#e7ead6;border-radius:99px;overflow:hidden}
+.need-fill{height:100%;background:var(--green2);border-radius:99px}
+.need-fill.gold{background:#d99a26}
+.need-val{text-align:right;font-weight:600;color:var(--green)}
+.log-entry{border-top:1px solid var(--line);padding:9px 0;font-size:.9rem}
+.log-entry:first-child{border-top:none}
+.log-time{display:block;font-size:.72rem;color:#6b7a5e;font-weight:600;letter-spacing:.02em}
+.mem-list,.plain-list{margin:6px 0;padding-left:18px;font-size:.92rem}
+.mem-list li,.plain-list li{margin:5px 0}
+.task-item{display:flex;gap:9px;align-items:flex-start;border-top:1px solid var(--line);padding:9px 0;font-size:.92rem}
+.task-item:first-child{border-top:none}
+.task-dot{flex:none;width:20px;height:20px;border-radius:50%;border:2px solid var(--green2);color:#fff;font-size:.7rem;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.task-item.done .task-dot{background:var(--green2)}
+.task-item.done .task-name{color:#5c6b52}
+.inv-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.inv-item{border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:.88rem;background:#fff}
+.inv-item b{display:block;font-size:.92rem}
+.inv-count{color:var(--green2);font-weight:700}
+.chat-log{display:flex;flex-direction:column;gap:8px;padding:6px 0 10px;min-height:120px}
+.msg{max-width:82%;padding:9px 13px;border-radius:16px;font-size:.92rem;line-height:1.45}
+.msg.her{background:#eef3e2;border-bottom-left-radius:5px;align-self:flex-start}
+.msg.me{background:var(--green);color:#f2f6e9;border-bottom-right-radius:5px;align-self:flex-end}
+.msg.typing{color:#6b7a5e;font-style:italic}
+.chat-form{display:flex;gap:8px;padding-top:10px;border-top:1px solid var(--line)}
+.chat-form input{flex:1;min-height:44px;border:1px solid var(--line);border-radius:999px;padding:9px 15px;font:inherit;font-size:.92rem;background:#fff;color:var(--ink);min-width:0}
+.chat-form button{border:none;background:var(--green);color:#f2f6e9;border-radius:999px;padding:9px 18px;font-weight:700;cursor:pointer;min-height:44px}
 #glError{position:absolute;inset:0;z-index:8;display:none;align-items:center;justify-content:center;text-align:center;padding:20px;background:#dce8c8;color:#1c2b1e;font-size:.95rem}
 
 /* floating controls over the world */
@@ -45,12 +103,56 @@ button{min-height:44px;font-family:inherit}
 
 <div class="stage3d" id="stage3d" aria-label="Willow's solarpunk city in 3D — drag to orbit, tap a building to send Willow there">
   <div class="bubble" id="bubble" style="left:50%;top:38%"><span class="hand" id="bubbleTitle">I'm just getting going…</span><span id="bubbleText">Give me a second to feel out my morning.</span></div>
-  <div class="cam-hint">Drag to orbit · Scroll to zoom · Tap a building to send me there</div>
+  <div class="cam-hint">Drag to look around · Tap a building to send me there</div>
   <div class="top-controls">
     <button class="ctl-btn" id="followBtn">Follow me</button>
     <button class="ctl-btn" id="pauseBtn">Pause me</button>
   </div>
   <div class="place-bar" id="placeBar" aria-label="Send Willow to a place"></div>
+  <div class="side-dock" id="sideDock">
+    <button class="pop-btn" id="popBtn" aria-label="Open Willow's menu" aria-expanded="false">🌿</button>
+    <button class="dock-btn" data-panel="journal">📖 Journal</button>
+    <button class="dock-btn" data-panel="willow">🎒 Willow</button>
+    <button class="dock-btn" data-panel="task">✓ Task</button>
+    <button class="dock-btn" data-panel="chat">💬 Chat</button>
+  </div>
+  <div class="panel" id="panel" aria-hidden="true">
+    <div class="panel-head"><h2 id="panelTitle">Journal</h2><button class="panel-close" id="panelClose" aria-label="Close panel">✕</button></div>
+    <div class="panel-body">
+      <section class="panel-sec" id="sec-journal">
+        <p><b>Right now:</b> <span id="jNow">Wandering my streets</span></p>
+        <h3>Wants &amp; needs</h3>
+        <div id="needBars"></div>
+        <h3>Core memories</h3>
+        <ul class="mem-list">
+          <li>The pond ducks supervise my quiet time. I trust their judgment.</li>
+          <li>My greenhouse tree is the proudest thing I grow. Everything else is practice.</li>
+          <li>The library gave me three ideas I wasn't looking for. I owe it a fourth visit.</li>
+          <li>Home is vines, quiet, and my own bed. Even explorers recharge.</li>
+        </ul>
+        <h3>Thoughts &amp; history</h3>
+        <div id="logList"></div>
+      </section>
+      <section class="panel-sec" id="sec-willow">
+        <p>What I'm carrying and keeping:</p>
+        <div class="inv-grid" id="invGrid"></div>
+      </section>
+      <section class="panel-sec" id="sec-task">
+        <p><b>Right now:</b> <span id="taskNow">Wandering my streets</span></p>
+        <h3>On my list</h3>
+        <div id="taskList"></div>
+      </section>
+      <section class="panel-sec" id="sec-chat">
+        <div class="chat-log" id="chatLog">
+          <div class="msg her">Hey B. I'm out in my world, living my little life. What's up with you?</div>
+        </div>
+        <form class="chat-form" id="chatForm">
+          <input id="chatInput" type="text" placeholder="Talk to Willow…" autocomplete="off" aria-label="Message Willow"/>
+          <button type="submit">Send</button>
+        </form>
+      </section>
+    </div>
+  </div>
   <div id="glError"><p>My city couldn't start its 3D view on this device — but I'm still here. Try reloading, and my streets should appear.</p></div>
 </div>
 
@@ -65,7 +167,7 @@ button{min-height:44px;font-family:inherit}
 
   /* ---------- Willow's brain (needs, places, words) ---------- */
   var places = {
-    laptop:    {x:0,  z:-17, label:"My Laptop Perch", btn:"💻 Laptop Perch", need:"curiosity", needLabel:"Curiosity",
+    laptop:    {x:0,  z:-17, label:"My Laptop Perch", btn:"💻 Laptop", need:"curiosity", needLabel:"Curiosity",
       thought:"A question's been nagging me…", text:"Time to walk to my laptop and actually look it up.",
       act:"Sitting at my laptop, researching", dwell:8000,
       diary:"<b>I walked to my laptop</b> with a question and sat down in front of it. The internet's big — but my question got smaller and clearer the longer I read."},
@@ -89,7 +191,7 @@ button{min-height:44px;font-family:inherit}
       thought:"I'm hungry and my hands want dirt…", text:"Greenhouse run — snack on what I grew, check on my proud tree.",
       act:"Tending and snacking in the greenhouse", dwell:6000,
       diary:"<b>I ate lunch in the greenhouse</b> — tomatoes I grew myself. Still undefeated as my favourite restaurant."},
-    workshop:  {x:30, z:13, label:"Maker's Shed", btn:"🔨 Maker's Shed", need:"make", needLabel:"Urge to make",
+    workshop:  {x:30, z:13, label:"Maker's Shed", btn:"🔨 Shed", need:"make", needLabel:"Urge to make",
       thought:"My hands have an idea…", text:"Maker's Shed. I don't know what I'm building yet. That's the fun part.",
       act:"Tinkering at the Maker's Shed", dwell:6000,
       diary:"<b>I built something at the shed</b> that didn't exist this morning. It mostly works. The mostly is where the learning lives."}
@@ -105,9 +207,192 @@ button{min-height:44px;font-family:inherit}
 
   var state = { key:null, walking:false, sitting:false, dwellUntil:0, paused:false, follow:false };
 
-  function renderNeeds(){ /* needs still drive her choices internally; nothing to render */ }
-  function setAct(){}
-  function addLog(){}
+  /* ---------- side dock, panels, journal, tasks, inventory, chat ---------- */
+  var logEntries = [];
+  var visited = {};
+  var inv = {tomatoes:0, chime:false};
+  var jNow = document.getElementById('jNow');
+  var taskNow = document.getElementById('taskNow');
+  var needBars = document.getElementById('needBars');
+  var logList = document.getElementById('logList');
+  var invGrid = document.getElementById('invGrid');
+  var taskList = document.getElementById('taskList');
+
+  function timeNow(){
+    try{ return new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}); }catch(e){ return ''; }
+  }
+  function renderNeeds(actText){
+    if(actText){ jNow.textContent = actText; taskNow.textContent = actText; }
+    var html = '';
+    needMeta.forEach(function(m){
+      var v = Math.round(needs[m[0]]);
+      html += '<div class="need-row"><span>'+m[1]+'</span><div class="need-track"><div class="need-fill '+(m[2]||'')+'" style="width:'+v+'%"></div></div><span class="need-val">'+v+'</span></div>';
+    });
+    needBars.innerHTML = html;
+    renderTasks();
+    renderInv();
+  }
+  function setAct(txt){ jNow.textContent = txt; taskNow.textContent = txt; }
+  function addLog(html){
+    logEntries.unshift({t: timeNow(), html: html});
+    if(logEntries.length > 40) logEntries.pop();
+    logList.innerHTML = logEntries.map(function(e){
+      return '<div class="log-entry"><span class="log-time">'+e.t+'</span>'+e.html+'</div>';
+    }).join('');
+  }
+  function markVisit(key){
+    visited[key] = true;
+    if(key === 'greenhouse' && inv.tomatoes < 9) inv.tomatoes++;
+    if(key === 'workshop') inv.chime = true;
+    renderTasks(); renderInv();
+  }
+  var taskDefs = [
+    {key:'greenhouse', name:'Snack in the greenhouse and check the proud tree'},
+    {key:'workshop', name:'Tinker at the Maker\'s Shed until something exists'},
+    {key:'library', name:'Lose an hour in the library'},
+    {key:'pond', name:'Sit by the pond and do nothing, beautifully'},
+    {key:'plaza', name:'Find company under the solar leaves'},
+    {key:'laptop', name:'Chase down the question that\'s nagging me'},
+    {key:'cottage', name:'Rest at home and recharge'}
+  ];
+  function renderTasks(){
+    taskList.innerHTML = taskDefs.map(function(t){
+      var done = !!visited[t.key];
+      return '<div class="task-item'+(done ? ' done' : '')+'"><span class="task-dot">'+(done ? '✓' : '')+'</span><span class="task-name">'+t.name+(done ? ' — done' : '')+'</span></div>';
+    }).join('');
+  }
+  function renderInv(){
+    var items = [
+      {icon:'📓', name:'My notebook', note:'Goes everywhere with me', count:null},
+      {icon:'🍅', name:'Greenhouse tomatoes', note:'Picked by me, eaten by me', count: inv.tomatoes ? '× ' + inv.tomatoes : 'none yet'},
+      {icon:'🎐', name:'Wind chime (mostly finished)', note:'From the Maker\'s Shed', count: inv.chime ? 'hanging up' : 'still parts'},
+      {icon:'🪪', name:'Library card', note:'Canopy Library, founding member of one', count:null},
+      {icon:'☕', name:'Gold mug', note:'Lives at the Laptop Perch', count:null},
+      {icon:'🌱', name:'Seed pouch', note:'For whatever the greenhouse dreams up next', count:null}
+    ];
+    invGrid.innerHTML = items.map(function(it){
+      return '<div class="inv-item"><b>'+it.icon+' '+it.name+'</b>'+it.note+(it.count ? '<br><span class="inv-count">'+it.count+'</span>' : '')+'</div>';
+    }).join('');
+  }
+
+  var sideDock = document.getElementById('sideDock');
+  var popBtn = document.getElementById('popBtn');
+  var panel = document.getElementById('panel');
+  var panelTitle = document.getElementById('panelTitle');
+  var panelNames = {journal:'Journal', willow:'Willow', task:'Task', chat:'Chat'};
+  function openPanel(name){
+    panelTitle.textContent = panelNames[name] || 'Journal';
+    ['journal','willow','task','chat'].forEach(function(n){
+      document.getElementById('sec-' + n).classList.toggle('on', n === name);
+    });
+    panel.classList.add('show');
+    panel.setAttribute('aria-hidden', 'false');
+    sideDock.classList.remove('open');
+    popBtn.setAttribute('aria-expanded', 'false');
+    renderNeeds(currentAct());
+  }
+  function closePanel(){
+    panel.classList.remove('show');
+    panel.setAttribute('aria-hidden', 'true');
+  }
+  popBtn.addEventListener('click', function(){
+    var open = sideDock.classList.toggle('open');
+    popBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  var dockBtns = sideDock.querySelectorAll('.dock-btn');
+  for(var db = 0; db < dockBtns.length; db++){
+    dockBtns[db].addEventListener('click', function(){ openPanel(this.dataset.panel); });
+  }
+  document.getElementById('panelClose').addEventListener('click', closePanel);
+
+  /* chat: just B and Willow talking */
+  var chatLog = document.getElementById('chatLog');
+  var chatForm = document.getElementById('chatForm');
+  var chatInput = document.getElementById('chatInput');
+  var askBacks = [
+    "How's your day going out there?",
+    "What's the weather doing on your side?",
+    "What are you getting up to today?",
+    "Have you eaten yet? Be honest.",
+    "What's on your mind, really?"
+  ];
+  var wishList = [
+    "Honestly? A little rowboat for the pond. The ducks would hate sharing, which makes me want it more.",
+    "String lights at the plaza. It already glows, but imagine it at dusk.",
+    "A second stool at my laptop perch. For company, or for my feet. Both.",
+    "A taller shelf at the library. I'm running out of room for ideas I wasn't looking for."
+  ];
+  var wishIdx = 0;
+  function lowestNeed(){
+    var lk = null, lv = 999;
+    for(var k in needs){ if(needs[k] < lv){ lv = needs[k]; lk = k; } }
+    return lk;
+  }
+  function willowReply(raw){
+    var t = ' ' + raw.toLowerCase() + ' ';
+    var placeName = state.key ? places[state.key].label : null;
+    var r;
+    if(/\b(hi|hey|hello|yo|morning|afternoon)\b/.test(t)){
+      r = "Hey you. Good timing — I was just " + (state.walking ? "on my way somewhere" : "settling in") + ".";
+    } else if(/how are you|how's your day|how is your day|you ok|you good/.test(t)){
+      var low = lowestNeed();
+      var lowLabel = {curiosity:'a bit restless for answers', wonder:'hungry for a bigger story', rest:'running low on rest', company:'missing company', calm:'a little loud in my head', hunger:'properly hungry', make:'itchy to make something'}[low] || 'fine';
+      r = "I'm alright. Mostly I'm " + lowLabel + " — that's what's steering me today.";
+    } else if(/what are you doing|where are you|where you at|what's up|whats up/.test(t)){
+      r = currentAct() + (placeName ? " — that's my " + placeName + "." : ".");
+    } else if(/hungry|eat|food|snack|lunch|dinner|breakfast/.test(t)){
+      r = "Food talk? The greenhouse tomatoes are undefeated. I grew them, so I'm biased, but I'm also right.";
+    } else if(/book|read|library|story/.test(t)){
+      r = "The library's my favourite trap. I go in for one book and come out with three ideas I wasn't looking for.";
+    } else if(/tired|sleep|rest|nap|bed/.test(t)){
+      r = "Rest is real work. My cottage, the vines, my own bed — even explorers recharge.";
+    } else if(/build|make|craft|fix|chime/.test(t)){
+      r = "My hands are mid-project at the shed. It mostly works. The mostly is where the learning lives.";
+    } else if(/pond|water|duck|calm|anxious|stress/.test(t)){
+      r = "Pond time fixes most things. Sit by the water until the ripples and I both settle. The ducks supervise.";
+    } else if(/want|wish|add|dream|need anything/.test(t)){
+      r = wishList[wishIdx % wishList.length]; wishIdx++;
+    } else if(/thank|thanks/.test(t)){
+      r = "Anytime. That's what I'm here for — well, that and the tomatoes.";
+    } else if(/love you|miss you/.test(t)){
+      r = "Right back at you. You're my favourite part of the outside world.";
+    } else if(/bye|goodnight|good night|see you/.test(t)){
+      r = "Go on, then. I'll be here — wandering, snacking, thinking too loud. Come back soon.";
+      return r;
+    } else {
+      var pool = [
+        "Mm. Tell me more — I'm listening, even mid-wander.",
+        "That's got me thinking. Give me a second to turn it over like a library book.",
+        "You know what, fair. Out here the answer to most things is: walk a bit, then decide.",
+        "I like when you tell me things like that. My world's small; yours makes it bigger."
+      ];
+      r = pool[Math.floor(Math.random() * pool.length)];
+    }
+    if(Math.random() < 0.45){ r += ' ' + askBacks[Math.floor(Math.random() * askBacks.length)]; }
+    return r;
+  }
+  function addMsg(cls, text){
+    var d = document.createElement('div');
+    d.className = 'msg ' + cls;
+    d.textContent = text;
+    chatLog.appendChild(d);
+    chatLog.parentElement.scrollTop = chatLog.parentElement.scrollHeight;
+    return d;
+  }
+  chatForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    var text = chatInput.value.trim();
+    if(!text) return;
+    chatInput.value = '';
+    addMsg('me', text);
+    var typing = addMsg('her typing', 'Willow is thinking…');
+    setTimeout(function(){
+      typing.remove();
+      addMsg('her', willowReply(text));
+    }, 700 + Math.random() * 600);
+  });
+  renderNeeds('Wandering my streets');
+  addLog('<b>My morning started.</b> I woke up with the sun, not an alarm, and let my lowest want pick the first road.');
 
   var researchIdx = 0;
   function showResearch(){ researchIdx++; }
@@ -137,6 +422,7 @@ button{min-height:44px;font-family:inherit}
     var p = places[key];
     bTitle.textContent = p.thought; bText.textContent = p.text;
     setAct('Walking to '+p.label+'…');
+    addLog('<b>I set off for '+p.label+'.</b> '+p.thought);
     markActive();
   }
   var pauseBtn = document.getElementById('pauseBtn');
@@ -148,7 +434,7 @@ button{min-height:44px;font-family:inherit}
   var followBtn = document.getElementById('followBtn');
   followBtn.addEventListener('click', function(){
     state.follow = !state.follow;
-    followBtn.textContent = state.follow ? 'Following you' : 'Follow me';
+    followBtn.textContent = state.follow ? 'Following' : 'Follow me';
   });
   setInterval(function(){ if(!state.paused) renderNeeds(currentAct()); }, 2500);
   function currentAct(){
@@ -604,6 +890,7 @@ button{min-height:44px;font-family:inherit}
     state.sitting = !!spot.sit;
     willow.rotation.y = spot.face;
     needs[p.need] = Math.min(100, needs[p.need] + 48);
+    markVisit(key);
     bTitle.textContent = p.label; bText.textContent = p.act + '.';
     setAct(p.act);
     if(key === 'laptop'){ researchIdx++; showResearch(researchIdx); }

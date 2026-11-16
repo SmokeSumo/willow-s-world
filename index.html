@@ -141,6 +141,8 @@ button{min-height:44px;font-family:inherit}
         <div id="cookBookLog"><p style="font-size:.9rem">Four recipes to start. She learns more by cooking, foraging and reading — nothing else is unlocked yet.</p></div>
         <h3>Questions I'm carrying</h3>
         <div id="questionLog"><p style="font-size:.9rem">Questions she wants real answers to. Willow looks them up properly and the answers land in her research notebook.</p></div>
+        <h3>What I'm wondering about</h3>
+        <div id="wonderLog"><p style="font-size:.9rem">A wonder starts in my notebook, then I go and research it, then I come back with the answer — and my honest verdict on whether it was worth wondering about.</p></div>
         <h3>Core memories</h3>
         <ul class="mem-list">
           <li>The pond ducks supervise my quiet time. I trust their judgment.</li>
@@ -416,7 +418,7 @@ button{min-height:44px;font-family:inherit}
       'Shed chest is empty — making materials land here.',
       'Shed chest holds {n} foraged thing{s} so far.');
     deriveMood();
-    renderForageGuide(); renderGarden(); renderCookbook(); renderQuestions();
+    renderForageGuide(); renderGarden(); renderCookbook(); renderQuestions(); renderWonders();
   }
 
   var sideDock = document.getElementById('sideDock');
@@ -644,8 +646,23 @@ button{min-height:44px;font-family:inherit}
       else if(askCook){ r = pick(["I can cook that, but I need to be at the Cottage — send me home and I'll put the pot on.", "That one needs the Cottage kitchen. Send me home and I'll make it."]); }
       else if(canNow.length){ r = 'Right now I can cook: ' + canNow.map(function(x){ return x.name; }).join(', ') + '. Tell me which one and, if I am home, I will make it.'; }
       else { r = 'I know four recipes — wild mint tea, berry mint tea, mushroom soup, and chamomile night tea — but I do not have the bits in my pouch right now. I need to forage first. Ask me what a recipe needs and I will tell you.'; }
+    } else if(/cloud|what do clouds taste|taste like.*cloud/.test(t)){
+      r = pick([
+        "Oh, the clouds! I wondered that, wrote it in my notebook, went and looked it up, and came back with the answer. They are just tiny water droplets and ice crystals — so they would taste like plain water. Maybe a bit like rain. Kind of boring, honestly. I thought they would be sugary. I am a little bit disappointed and I am keeping the note anyway. What did you think they would taste like?",
+        "Clouds taste like water. That is the answer, and I am still a bit annoyed about it. I had a whole sugary cloud in my head and it turned out to be plain water. What would you have guessed — sugary, or something else?",
+        "I did the research on that one already — it is in my notebook, under wonders. Clouds: plain water. Verdict: kind of boring, I thought they would be sugary. Do you have a wonder like that? Something you were sure would be exciting and it turned out to be water?"
+      ]);
+    } else if(/wonder|wondering|curious about|what are you curious/.test(t)){
+      var open = wonders.filter(function(w){ return w.status !== 'answered'; });
+      var w0 = open.length ? open[0] : wonders[0];
+      r = pick([
+        "Right now I am wondering: " + w0.q + " " + w0.guess + " It is in my notebook. When I find out, I will tell you whether it was worth wondering about.",
+        "I am carrying a few wonders at the moment. The big one is: " + w0.q + " What do you think? Give me your guess before I go and look it up — I want to compare.",
+        "Wondering is my favourite hobby, after foraging. Currently: " + w0.q + " I have a guess, I have a notebook, and I have a laptop. That is everything a wonder needs."
+      ]);
     } else if(/duck|dilly|mabel|pip/.test(t)){
       if(/feed/.test(t)){ r = doFeedDucks(); }
+      else if(/dream/.test(t)){ r = pick(["Do ducks dream? I am wondering that right now — it is in my notebook. Mabel looks like she dreams in ripples. Pip definitely dreams about berries. I am going to research it and come back with an answer, and my honest verdict.", "I wonder about that one a lot. If Mabel dreams, I bet she dreams about a pond with no me in it, just quiet water. I will look it up properly and tell you what I find."]); }
       else if(/favourite|favorite/.test(t)){ r = pick(["Mabel. She takes her time and she never rushes a verdict. Dilly's the bold one, Pip's the baby — but Mabel is my favourite.", "Pip, honestly. He's small and he follows everyone and he tries so hard. Don't tell Dilly."]); }
       else r = pick([
         "The ducks! Dilly, Mabel and Pip — they're in the pond right now, doing slow circles and judging me. Dilly's the white one, Mabel's brown, Pip's the small one. They supervise my quiet time, it's a whole thing.",
@@ -1054,6 +1071,7 @@ button{min-height:44px;font-family:inherit}
     addLog('<b>I finished a research sitting.</b> '+research.current.q+' The note is in my research notebook.');
     research.current = null;
     renderResearch();
+    answerWonder();
   }
 
   /* Questions she is carrying — the ones that need real answers, not canned
@@ -1069,6 +1087,50 @@ button{min-height:44px;font-family:inherit}
     el.innerHTML = questionsCarried.map(function(q){
       return '<div class="log-entry"><span class="log-time">carrying</span>'+q+'</div>';
     }).join('');
+  }
+
+  /* The wonder loop, Pino-style: she wonders something, writes it in her
+     notebook, goes and researches it, comes back with the answer — and her
+     honest verdict. The clouds one is already answered, because that is
+     the joke: she thought they would be sugary. They are just water. */
+  var wonders = [
+    {q:'What do clouds taste like?', status:'answered',
+     guess:'I thought they would be a little bit sugary, like spun sugar. Or like the white part of a cloud sweet.',
+     answer:'Clouds are just tiny water droplets and ice crystals floating in the air — so they would taste like plain water. Maybe a bit like rain.',
+     verdict:'Kind of boring, honestly. I thought they would be sugary. They are just water. I am a little bit disappointed and I am keeping the note anyway.'},
+    {q:'Do ducks dream?', status:'wondering',
+     guess:'Mabel looks like she dreams in ripples. Pip definitely dreams about berries.',
+     answer:'', verdict:''},
+    {q:'Why do lily pads float?', status:'researching',
+     guess:'I think they are full of air, like little green boats.',
+     answer:'Lily pads float because their leaves are full of tiny air spaces, and the top is waxy so water slides off instead of soaking in. They are built like boats.',
+     verdict:'That one was worth it. They really are boats. I look at them differently now.'},
+    {q:'What does the city sound like at night, past the edge of my circle?', status:'wondering',
+     guess:'Probably humming. Everything out there hums, even the concrete.',
+     answer:'', verdict:''}
+  ];
+  function renderWonders(){
+    var el = document.getElementById('wonderLog'); if(!el) return;
+    el.innerHTML = wonders.map(function(w){
+      var html = '<div class="log-entry"><span class="log-time">' + w.status + '</span><b>' + w.q + '</b><br><span style="font-size:.88rem">My guess: ' + w.guess + '</span>';
+      if(w.status === 'answered'){
+        html += '<br><span style="font-size:.88rem">Answer: ' + w.answer + '</span><br><span style="font-size:.88rem"><b>Verdict:</b> ' + w.verdict + '</span>';
+      } else {
+        html += '<br><span style="font-size:.88rem">Still to find out — it is in my notebook, and I will go and research it.</span>';
+      }
+      return html + '</div>';
+    }).join('');
+  }
+  function answerWonder(){
+    for(var i=0;i<wonders.length;i++){
+      if(wonders[i].status === 'researching' || wonders[i].status === 'wondering'){
+        if(!wonders[i].answer) continue;
+        wonders[i].status = 'answered';
+        addLog('<b>I found the answer to a wonder.</b> ' + wonders[i].q + ' ' + wonders[i].answer + ' Verdict: ' + wonders[i].verdict);
+        renderWonders();
+        return;
+      }
+    }
   }
 
   /* Greenhouse: crops grow over time, they are not instant. Tending on a
@@ -1307,7 +1369,7 @@ button{min-height:44px;font-family:inherit}
 
   var scene = new THREE.Scene();
   scene.background = new THREE.Color(0x9fd3e8);
-  scene.fog = new THREE.Fog(0xd6e6ee, 95, 220); /* city haze, not meadow mist */
+  scene.fog = new THREE.Fog(0xc9d2d6, 90, 210); /* urban haze over concrete */
 
   var camera = new THREE.PerspectiveCamera(46, 1, 0.1, 400);
   camera.position.set(38, 32, 48);
@@ -1344,6 +1406,7 @@ button{min-height:44px;font-family:inherit}
     wood: mat(0x8a5a33, 0.8), woodLight: mat(0xb0814e, 0.8), cream: mat(0xf3ead2, 0.9),
     roofGreen: mat(0x3e7d4e), leaf: mat(0x4c9455), leafLight: mat(0x74b06a),
     gold: mat(0xe0a83c, 0.35, 0.55), terra: mat(0xc96f3f), stone: mat(0xb9bfae, 0.95),
+    concrete: mat(0x9a9a92, 0.95), concreteDark: mat(0x7e7e76, 0.95), pavement: mat(0x8f8f88, 0.95), windowDark: mat(0x2e3438, 0.4),
     water: new THREE.MeshStandardMaterial({color:0x4d9db8, roughness:0.15, metalness:0.05, transparent:true, opacity:0.88}),
     glass: new THREE.MeshPhysicalMaterial({color:0xbfe6d8, roughness:0.08, metalness:0, transparent:true, opacity:0.32, depthWrite:false}),
     screen: new THREE.MeshStandardMaterial({color:0x0e2a22, emissive:0x9fe8c0, emissiveIntensity:0.9, roughness:0.4}),
@@ -1408,30 +1471,54 @@ button{min-height:44px;font-family:inherit}
   var rim = new THREE.Mesh(new THREE.RingGeometry(39.5, 120, 40), M.grassDark);
   rim.rotation.x = -Math.PI/2; rim.position.y = -0.08;
   scene.add(rim);
-  /* Solarpunk cityscape — this was always meant to be a city, not a meadow.
-     A ring of towers stands past the edge of Fern's circle: glass, stone
-     and green roofs, solar panels on top, trees growing out of the roofs.
-     The cottage, pond and greenhouse are her neighbourhood inside the city. */
+  /* Eco-brutalism — a brutalist city, overtaken by the green. Raw concrete
+     slabs, stepped and heavy, slit windows, and vines and trees growing out
+     of every crack. Fern's cottage, pond and greenhouse are her
+     neighbourhood inside the concrete. */
   (function(){
-    var cityMats = [mat(0x8fb8c9, 0.45), mat(0xb9bfae, 0.9), mat(0x7a9a8a, 0.8), mat(0xd9c491, 0.9)];
+    function brutalSlab(x, z, w, h, d){
+      var a = Math.atan2(z, x);
+      box(w, h, d, M.concrete, x, h/2, z, scene);
+      box(w*0.62, h*0.45, d*0.62, M.concreteDark, x + Math.cos(a)*0.4, h + h*0.22, z + Math.sin(a)*0.4, scene);
+      /* slit windows on the face toward the centre */
+      var wx = x - Math.cos(a)*(w/2 + 0.06), wz = z - Math.sin(a)*(w/2 + 0.06);
+      var slit1 = box(w*0.7, 0.5, 0.12, M.windowDark, wx, h*0.62, wz, scene); slit1.rotation.y = -a + Math.PI/2;
+      var slit2 = box(w*0.7, 0.5, 0.12, M.windowDark, wx, h*0.32, wz, scene); slit2.rotation.y = -a + Math.PI/2;
+      /* the green taking over: vines up the side, a tree on the roof */
+      ball(w*0.3, M.leaf, x + Math.cos(a + 1.2)*w*0.5, h*0.55, z + Math.sin(a + 1.2)*w*0.5, scene);
+      ball(w*0.22, M.leafLight, x + Math.cos(a - 1.0)*w*0.5, h*0.3, z + Math.sin(a - 1.0)*w*0.5, scene);
+      ball(w*0.34, M.leaf, x, h + h*0.45 + 0.8, z, scene);
+      var panel = box(w*0.6, 0.15, w*0.45, mat(0x2e4a6b, 0.3, 0.4), x, h + h*0.45 + 0.1, z, scene);
+      panel.rotation.y = a;
+    }
     for(var i=0;i<22;i++){
       var a = i/22*Math.PI*2 + 0.13;
       var r = 58 + (i%3)*7;
-      var h = 7 + ((i*37)%13);
-      var w = 5 + ((i*11)%4);
-      var bx = Math.cos(a)*r, bz = Math.sin(a)*r;
-      box(w, h, w, cityMats[i%4], bx, h/2, bz, scene);
-      ball(w*0.42, M.leaf, bx, h+0.7, bz, scene);
-      var panel = box(w*0.7, 0.15, w*0.5, mat(0x2e4a6b, 0.3, 0.4), bx, h+0.15, bz, scene);
-      panel.rotation.y = a;
+      var h = 10 + ((i*37)%16);
+      var w = 6 + ((i*11)%4);
+      brutalSlab(Math.cos(a)*r, Math.sin(a)*r, w, h, w);
     }
-    /* three taller towers, with solar trees on their roofs */
-    [[-52,-48,26],[48,-58,30],[62,42,24]].forEach(function(tw){
-      box(8, tw[2], 8, mat(0x8fb8c9, 0.4), tw[0], tw[2]/2, tw[1], scene);
-      ball(3.2, M.leaf, tw[0], tw[2]+1.2, tw[1], scene);
-      ball(2.2, M.leafLight, tw[0]+2, tw[2]+0.4, tw[1]+1, scene);
-      box(5, 0.2, 4, mat(0x2e4a6b, 0.3, 0.4), tw[0], tw[2]+0.3, tw[1], scene);
+    /* three taller brutalist towers, vines cascading down their faces */
+    [[-52,-48,28],[48,-58,32],[62,42,26]].forEach(function(tw){
+      brutalSlab(tw[0], tw[1], 10, tw[2], 10);
+      ball(3.4, M.leaf, tw[0], tw[2]*1.45 + 1, tw[1], scene);
+      ball(2.4, M.leafLight, tw[0]+3, tw[2]*1.45, tw[1]+2, scene);
     });
+    /* the city inside the circle: a paved ring road, concrete blocks at
+       the edge of her neighbourhood, and lamps along the road */
+    var ring = new THREE.Mesh(new THREE.RingGeometry(40.5, 44, 48), M.pavement);
+    ring.rotation.x = -Math.PI/2; ring.position.y = 0.02; scene.add(ring);
+    [[0.6, 45], [2.4, 46], [4.2, 45]].forEach(function(b2){
+      brutalSlab(Math.cos(b2[0])*b2[1], Math.sin(b2[0])*b2[1], 9, 12, 7);
+    });
+    /* a long concrete wall, vines all over it, on the south edge */
+    var wall = box(16, 4, 1.2, M.concreteDark, 0, 2, 47, scene); wall.rotation.y = 0.2;
+    ball(1.6, M.leaf, -5, 4.4, 47, scene); ball(1.2, M.leafLight, 3, 4.2, 47, scene); ball(1.0, M.leaf, 7, 3.6, 47, scene);
+    for(var li=0; li<6; li++){
+      var la = li/6*Math.PI*2 + 0.5;
+      cyl(0.12, 0.16, 3.4, M.concreteDark, Math.cos(la)*42, 1.7, Math.sin(la)*42, scene, 8);
+      ball(0.35, M.gold, Math.cos(la)*42, 3.6, Math.sin(la)*42, scene);
+    }
   })();
   function pathTo(x, z, w){
     var len = Math.hypot(x, z);
@@ -1917,7 +2004,7 @@ button{min-height:44px;font-family:inherit}
       laptop: ['The screen has a smudge on it shaped like a leaf. I am leaving it. It feels like a signature.', 'There is a gold mug here that never empties properly. I do not question it anymore.', 'My notebook is open to a page that just says: ask better questions. So I am.'],
       library: ['One of the books is shelved upside down. I think it is a test. I have not touched it, out of respect.', 'The light comes through the leaves and lands on the floor in little green coins.', 'I found a recipe pressed between two pages. Someone left it there for me, I am sure of it.'],
       cottage: ['My bed is made. Mostly. The blanket has a corner that will not stay put, and I have decided it is a personality trait.', 'The chest smells like dried mint and old wood. That is the smell of home, to me.', 'There is a smooth stone on the windowsill. It is my favourite one. Do not move it.'],
-      plaza: ['The solar leaves above the plaza are humming, very quietly, like they are charging and singing at the same time.', 'The bench here is warm from the sun. It is the best seat in the whole city, and I will fight the ducks for it.', 'From here I can see the towers and the pond at the same time. The whole world fits in one look.'],
+      plaza: ['The solar leaves above the plaza are humming, very quietly, like they are charging and singing at the same time. The concrete under them is warm, and there is moss growing in the cracks — the city is losing, slowly, to the green.', 'The bench here is warm from the sun. It is the best seat in the whole city, and I will fight the ducks for it.', 'From here I can see the towers and the pond at the same time. The whole world fits in one look.'],
       pond: ['The water is so still right now it is holding the sky up. I do not want to disturb it, but Pip is about to.', 'A lily pad has a single drop of water on it, perfectly round, like the pond is showing off.', 'The ducks are doing slow circles. Dilly is leading, Mabel is supervising, Pip is just happy to be included.'],
       greenhouse: ['The tomatoes are redder than they were this morning. I am taking full credit, even though the sun did most of it.', 'The mint is trying to escape its bed again. I admire the ambition and I prune it anyway.', 'It smells like warm earth and green in here. If I could bottle a smell, it would be this one.'],
       workshop: ['My wind chime is hanging by the bench. It catches the light and throws it around the room.', 'There is sawdust on the floor in the shape of a small mountain. I am keeping it. It is art now.', 'The easel has a fresh canvas on it. It is blank and it is daring me. I accept the dare.']

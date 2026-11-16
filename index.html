@@ -137,6 +137,10 @@ button{min-height:44px;font-family:inherit}
         <div id="needBars"></div>
         <h3>Research notebook</h3>
         <div id="researchLog"><p style="font-size:.9rem">No research yet today. My laptop perch is where questions get answered — send me there, or let my need for something new take me.</p></div>
+        <h3>Recipe book — from the Library</h3>
+        <div id="cookBookLog"><p style="font-size:.9rem">Four recipes to start. She learns more by cooking, foraging and reading — nothing else is unlocked yet.</p></div>
+        <h3>Questions I'm carrying</h3>
+        <div id="questionLog"><p style="font-size:.9rem">Questions she wants real answers to. Willow looks them up properly and the answers land in her research notebook.</p></div>
         <h3>Core memories</h3>
         <ul class="mem-list">
           <li>The pond ducks supervise my quiet time. I trust their judgment.</li>
@@ -151,7 +155,13 @@ button{min-height:44px;font-family:inherit}
       <section class="panel-sec" id="sec-fern">
         <p>What I'm carrying with me out in the world:</p>
         <div class="inv-grid" id="invGrid"></div>
-        <div class="forage-note" id="forageNote">🌿 <b>Foraging:</b> I wander the whole circle now — not just the paths. When I spot berries, mint, mushrooms, flowers or herbs, I stop and gather them. Tap any glowing forage patch or open ground to send me there.</div>
+        <div class="forage-note" id="forageNote">🌿 <b>Foraging:</b> I wander the whole circle now — not just the paths. Every patch has a real species and a name. Tap any glowing forage patch or open ground to send me there.</div>
+        <h3>Forage guide — real species, named patches</h3>
+        <div id="forageGuide"></div>
+        <h3>Greenhouse — what's growing</h3>
+        <div id="gardenLog"></div>
+        <h3>Cookbook — cook at the Cottage</h3>
+        <div id="cookBook"></div>
         <div class="chest-box">
           <h4>🧰 Cottage chest — at home</h4>
           <p>My main chest, inside the cottage. What I forage and don't eat straight away goes here when I come home.</p>
@@ -266,6 +276,31 @@ button{min-height:44px;font-family:inherit}
     flower:   {icon:'🌸', name:'Wildflowers', need:'wonder', boost:12, eat:'Not for eating. For looking at until my head feels bigger.'},
     herb:     {icon:'🍃', name:'Sweet herbs', need:'make', boost:10, eat:'These will end up in something I make. Everything does.'}
   };
+  /* Real species, not generic "wild berries". A patch is a named place AND a
+     real plant: spearmint is not peppermint, a serviceberry is not a raspberry,
+     and an apple is not a berry at all. The broad type (berries/mint/...) is
+     still what goes in the pouch, so the chest math doesn't break — the
+     species is what she actually picked, logged, and cooks with. */
+  var speciesInfo = {
+    serviceberries:{use:'jam + tea', note:'Sweet, a little almond-y. The first berries of summer.'},
+    raspberries:{use:'jam + tea', note:'Tart and bright. Prickly canes — pick carefully.'},
+    blueberries:{use:'jam + tea', note:'Lowbush blueberries. Small, dark, and worth the crouching.'},
+    strawberries:{use:'jam + tea', note:'Wild strawberries. Tiny, and ten times the flavour of big ones.'},
+    spearmint:{use:'tea, calm', note:'Cool and sweet. The one for tea.'},
+    peppermint:{use:'tea, calm', note:'Sharper than spearmint, almost cold on the tongue.'},
+    fieldmint:{use:'tea, calm', note:'Wild mint, native here. Gentler than the garden mints.'},
+    lemonbalm:{use:'tea, calm', note:'Mint family, lemon-scented. Good for a quiet evening cup.'},
+    chanterelles:{use:'soup, cooking', note:'Golden and peppery. Only the ones I know, always.'},
+    oyster:{use:'soup, cooking', note:'Soft, oyster-shaped, grows on logs. Into the soup pot.'},
+    morels:{use:'soup, cooking', note:'Spring-only, honeycombed. Cook them properly, always.'},
+    calendula:{use:'tea + salve', note:'Orange petals. Tea by day, salve by night.'},
+    wildrose:{use:'tea + rosehips', note:'Wild rose, hips in autumn. Tea now, hips later.'},
+    elderflower:{use:'tea + cordial', note:'Creamy white flowers. Cordial in summer, berries in autumn.'},
+    chamomile:{use:'tea, rest', note:'Little daisy flowers. The sleepy-time one.'},
+    sage:{use:'cooking + tea', note:'Garden sage. Savoury, strong — a little goes a long way.'},
+    yarrow:{use:'tea + salve', note:'Feathery leaves, white flowers. An old tea plant.'},
+    nettle:{use:'tea, cooking', note:'Stinging nettle. Gloves on. Cooked, it is all spinach and green.'}
+  };
   var carriedForage = {berries:0, mint:0, mushroom:0, flower:0, herb:0};
   /* two separate chests, as in the manual: cottage chest and shed chest never mix */
   var chestCottage = {berries:0, mint:0, mushroom:0, flower:0, herb:0};
@@ -316,7 +351,7 @@ button{min-height:44px;font-family:inherit}
   }
   function markVisit(key){
     visited[key] = true;
-    if(key === 'greenhouse' && inv.tomatoes < 9) inv.tomatoes++;
+    if(key === 'greenhouse') tendGarden();
     if(key === 'workshop') inv.chime = true;
     if(key === 'cottage') depositToChest('cottage');
     if(key === 'workshop') depositToChest('shed');
@@ -381,6 +416,7 @@ button{min-height:44px;font-family:inherit}
       'Shed chest is empty — making materials land here.',
       'Shed chest holds {n} foraged thing{s} so far.');
     deriveMood();
+    renderForageGuide(); renderGarden(); renderCookbook(); renderQuestions();
   }
 
   var sideDock = document.getElementById('sideDock');
@@ -557,6 +593,28 @@ button{min-height:44px;font-family:inherit}
         "Third time's the charm? You keep saying that, so I'll say this differently: I'm listening, really.",
         "Okay, that's three in a row. Either you're stuck or I am. Let's change the subject — what do you actually want to talk about?"
       ]);
+    } else if(/\bcook\b|\brecipe\b|\bwhat can (you|i) cook\b|\bmake (me )?(tea|soup|food|dinner)\b/.test(t)){
+      var canNow = cookBook.filter(function(r){ return r.need.every(function(n){ return carriedForage[n] > 0; }); });
+      var askCook = /mint tea|berry.*tea|mushroom soup|chamomile/.test(t) ? (t.indexOf('mushroom')>=0 ? 'mushroomsoup' : t.indexOf('chamomile')>=0 ? 'chamomiletea' : t.indexOf('berry')>=0 ? 'berrytea' : 'minttea') : null;
+      if(askCook && state.key === 'cottage'){ r = cookMeal(askCook, true); }
+      else if(askCook){ r = pick(["I can cook that, but I need to be at the Cottage — send me home and I'll put the pot on.", "That one needs the Cottage kitchen. Send me home and I'll make it."]); }
+      else if(canNow.length){ r = 'Right now I can cook: ' + canNow.map(function(x){ return x.name; }).join(', ') + '. Tell me which one and, if I am home, I will make it.'; }
+      else { r = 'I know four recipes — wild mint tea, berry mint tea, mushroom soup, and chamomile night tea — but I do not have the bits in my pouch right now. I need to forage first. Ask me what a recipe needs and I will tell you.'; }
+    } else if(/duck|dilly|mabel|pip/.test(t)){
+      r = pick([
+        "The ducks! Dilly, Mabel and Pip — they're in the pond right now, doing slow circles and judging me. Dilly's the white one, Mabel's brown, Pip's the small one. They supervise my quiet time, it's a whole thing.",
+        "Dilly, Mabel and Pip are my pond committee. I ask them things and they just… float there, very wisely. I trust their judgment more than most people.",
+        "Oh, the ducks are real now — three of them, in the water. Dilly's the bold one, Mabel takes her time, Pip follows everyone. Come sit at the pond with me sometime and you'll see."
+      ]);
+    } else if(/spearmint|peppermint|field mint|lemon balm|serviceberr|chokecherr|chanterelle|morel|oyster mushroom|calendula|elderflower|chamomile|nettle|yarrow|wild rose/.test(t)){
+      var spName = t.match(/spearmint|peppermint|field mint|lemon balm|serviceberr[a-z]*|chokecherr[a-z]*|chanterelle[a-z]*|morel[a-z]*|oyster mushroom|calendula|elderflower|chamomile|nettle|yarrow|wild rose/);
+      var key = spName ? spName[0].replace(/ies$/,'y').replace(/berries/,'berries') : null;
+      var info = null;
+      if(key){
+        var map = {spearmint:'spearmint', peppermint:'peppermint', 'field mint':'fieldmint', 'lemon balm':'lemonbalm', serviceberry:'serviceberries', serviceberries:'serviceberries', chokecherry:'serviceberries', chokecherries:'serviceberries', chanterelle:'chanterelles', chanterelles:'chanterelles', morel:'morels', morels:'morels', 'oyster mushroom':'oyster', calendula:'calendula', elderflower:'elderflower', chamomile:'chamomile', nettle:'nettle', yarrow:'yarrow', 'wild rose':'wildrose'};
+        info = speciesInfo[map[key]];
+      }
+      r = info ? pick(["That's one of mine. " + info.note + " For " + info.use + ".", info.note + " I use it for " + info.use + "."]) : "That's one of the real ones I forage — not a generic wild anything. Ask me where it grows and I'll tell you the patch.";
     } else if(goMatch && destKey){
       goTo(destKey);
       r = pick([
@@ -874,7 +932,10 @@ button{min-height:44px;font-family:inherit}
     {q:"Which mint spreads fastest?", note:"Spearmint outruns the other mints and will take over a whole bed if it's planted loose. Best kept in a pot or a patch of its own."},
     {q:"Do solar leaves still gather power on cloudy days?", note:"Yes — panels still gather diffuse light on grey days, just less of it, roughly a quarter of a bright day's take. The plaza tree slows down, it doesn't stop."},
     {q:"How long do wild berries keep once they're picked?", note:"A few days fresh in the cool. Dried, they keep for months — drying is the chest-friendly way to store a big forage day."},
-    {q:"Why does the pond go still just before dusk?", note:"As the air cools, the little breezes that ripple the surface die down, so the water settles mirror-flat. Best reflecting hour of the day."}
+    {q:"Why does the pond go still just before dusk?", note:"As the air cools, the little breezes that ripple the surface die down, so the water settles mirror-flat. Best reflecting hour of the day."},
+    {q:"Serviceberry or chokecherry — how do I tell them apart?", note:"Serviceberries ripen dark blue-purple in early summer, with soft, sweet flesh and a tiny crown on the end. Chokecherries ripen later, stay red longer, and are sharply astringent until they're fully ripe. When in doubt, wait, taste one, and write it down."},
+    {q:"Spearmint or peppermint — which is which?", note:"Spearmint is sweet and cool with wrinkled, pointed leaves. Peppermint is sharper, almost cold, with smooth dark stems and a menthol bite. Same family, different plant — and the tea tastes different."},
+    {q:"How do I know these are really chanterelles?", note:"True chanterelles are golden, smell faintly of apricots, and have blunt ridges that run down the stem — not thin, sharp gills. Never eat a mushroom on a guess; check the ridges, the smell, and the place it grew."}
   ];
   var research = {idx:0, current:null, done:[]};
   function renderResearch(){
@@ -904,6 +965,102 @@ button{min-height:44px;font-family:inherit}
     addLog('<b>I finished a research sitting.</b> '+research.current.q+' The note is in my research notebook.');
     research.current = null;
     renderResearch();
+  }
+
+  /* Questions she is carrying — the ones that need real answers, not canned
+     ones. Willow (outside the world) looks these up properly and the answers
+     land in the research notebook. */
+  var questionsCarried = [
+    'Is the patch at Berry Bend serviceberries or chokecherries? How do I tell them apart for real?',
+    'Spearmint or peppermint — which one is growing at Mint Corner, and which one is at Peppermint Bank?',
+    'How do I know these are really chanterelles and not a lookalike?'
+  ];
+  function renderQuestions(){
+    var el = document.getElementById('questionLog'); if(!el) return;
+    el.innerHTML = questionsCarried.map(function(q){
+      return '<div class="log-entry"><span class="log-time">carrying</span>'+q+'</div>';
+    }).join('');
+  }
+
+  /* Greenhouse: crops grow over time, they are not instant. Tending on a
+     visit pushes growth; at 100% she harvests, and growth resets. Scarcity
+     stays — she cannot harvest every visit. */
+  var garden = {
+    tomatoes:{label:'Tomatoes', growth:35, harvest:'tomatoes'},
+    mint:{label:'Mint (spearmint)', growth:20, harvest:'mint'},
+    herbs:{label:'Herbs (sage)', growth:10, harvest:'herb'}
+  };
+  function tendGarden(){
+    var out = [];
+    for(var k in garden){
+      var g = garden[k];
+      g.growth = Math.min(100, g.growth + 30);
+      if(g.growth >= 100){
+        g.growth = 0;
+        if(k === 'tomatoes'){ if(inv.tomatoes < 9) inv.tomatoes += 2; out.push('ripe tomatoes (+2)'); }
+        else { carriedForage[k] += 1; forageTotal += 1; out.push('ripe '+g.label.toLowerCase()+' (+1)'); }
+      }
+    }
+    if(out.length) addLog('<b>Harvested in the greenhouse:</b> '+out.join(', ')+'. The beds start again from seed.');
+    else addLog('<b>Tended the greenhouse.</b> Tomatoes '+garden.tomatoes.growth+'%, mint '+garden.mint.growth+'%, herbs '+garden.herbs.growth+'% — not ripe yet. Patience is part of growing.');
+    renderGarden(); renderInv();
+  }
+  function renderGarden(){
+    var el = document.getElementById('gardenLog'); if(!el) return;
+    var html = '';
+    for(var k in garden){
+      var g = garden[k];
+      html += '<div class="log-entry"><span class="log-time">'+g.growth+'%</span><b>'+g.label+'</b> — '+(g.growth>=100?'ripe, ready to harvest':'growing, not ripe yet')+'</div>';
+    }
+    el.innerHTML = html;
+  }
+
+  /* Cookbook — cook at the Cottage, from what she actually carries.
+     Four recipes to start. Nothing else is unlocked yet. */
+  var cookBook = [
+    {key:'minttea', name:'Wild mint tea', need:['mint'], needText:'1 mint — spearmint or peppermint', boosts:{hunger:14, calm:12}, note:'Steep the mint, sip slow. The calm one.'},
+    {key:'berrytea', name:'Berry mint tea', need:['berries','mint'], needText:'1 berries + 1 mint', boosts:{hunger:22, joy:8}, note:'Serviceberries or raspberries, whichever she picked, with mint on top.'},
+    {key:'mushroomsoup', name:'Mushroom soup', need:['mushroom','herb'], needText:'1 mushroom + 1 herb', boosts:{hunger:26, energy:6}, note:'Chanterelles or oyster mushrooms, sage to finish. A real meal.'},
+    {key:'chamomiletea', name:'Chamomile night tea', need:['flower','herb'], needText:'1 flower + 1 herb', boosts:{rest:18, calm:10}, note:'Chamomile flowers and a herb, for the end of the day.'}
+  ];
+  function cookMeal(key, viaChat){
+    var r = null; for(var i=0;i<cookBook.length;i++) if(cookBook[i].key===key) r = cookBook[i];
+    if(!r) return 'I only know four recipes so far — mint tea, berry mint tea, mushroom soup, and chamomile night tea. Ask me what I can cook and I will tell you what I have the bits for.';
+    var missing = r.need.filter(function(t){ return carriedForage[t] < 1; });
+    if(missing.length){
+      var names = missing.map(function(t){ return forageTypes[t].name.toLowerCase(); }).join(' and ');
+      return 'I cannot make '+r.name+' yet — I am missing '+names+'. '+r.needText+'. I need to go foraging first.';
+    }
+    r.need.forEach(function(t){ carriedForage[t]--; });
+    for(var bk in r.boosts){ needs[bk] = Math.min(100, needs[bk] + r.boosts[bk]); }
+    addLog('<b>Cooked at the Cottage: '+r.name+'.</b> '+r.note);
+    renderInv(); renderCookbook();
+    return 'Cooked '+r.name+' at the Cottage. '+r.note+' My pouch is a little lighter and my belly is a little happier.';
+  }
+  function renderCookbook(){
+    var el = document.getElementById('cookBook'); if(!el) return;
+    el.innerHTML = cookBook.map(function(r){
+      var missing = r.need.filter(function(t){ return carriedForage[t] < 1; });
+      var can = !missing.length;
+      return '<div class="log-entry"><span class="log-time">'+(can?'ready':'need '+missing.map(function(t){ return forageTypes[t].name.toLowerCase(); }).join(' + '))+'</span><b>'+r.name+'</b> — '+r.needText+'<br><span style="font-size:.88rem">'+r.note+'</span> <button data-cook="'+r.key+'" '+(can?'':'disabled')+' style="margin-left:.4rem">Cook</button></div>';
+    }).join('');
+    el.querySelectorAll('[data-cook]').forEach(function(b){
+      b.addEventListener('click', function(){ cookMeal(b.getAttribute('data-cook')); });
+    });
+    var log = document.getElementById('cookBookLog'); if(log){
+      log.innerHTML = cookBook.map(function(r){
+        return '<div class="log-entry"><span class="log-time">recipe</span><b>'+r.name+'</b> — '+r.needText+'<br><span style="font-size:.88rem">'+r.note+'</span></div>';
+      }).join('');
+    }
+  }
+  function renderForageGuide(){
+    var el = document.getElementById('forageGuide'); if(!el) return;
+    el.innerHTML = forageDefs.map(function(d){
+      var sp = speciesInfo[d.species] || {use:'foraging', note:''};
+      var node = null; if(typeof forageNodesRef !== 'undefined'){ for(var i=0;i<forageNodesRef.length;i++){ if(forageNodesRef[i].name===d.name) node = forageNodesRef[i]; } }
+      var status = node ? (node.available ? 'ready' : 'picked, growing back') : 'ready';
+      return '<div class="log-entry"><span class="log-time">'+status+'</span><b>'+d.name+'</b> — '+d.species+'<br><span style="font-size:.88rem">'+sp.note+' For '+sp.use+'.</span></div>';
+    }).join('');
   }
 
   /* lowest need leads, like the manual says — not a fixed script */
@@ -988,10 +1145,12 @@ button{min-height:44px;font-family:inherit}
     carriedForage[node.type]+=qty; forageTotal+=qty;
     needs[ft.need] = Math.min(100, needs[ft.need]+ft.boost);
     visited.__roam = true;
-    bTitle.textContent = ft.name+' — found.';
-    bText.textContent = ft.eat+' (+'+qty+' in my pouch)';
-    setAct('Foraging — gathering '+ft.name.toLowerCase());
-    addLog('<b>I foraged '+ft.name.toLowerCase()+'.</b> '+ft.eat+' Pouch now holds '+carriedCount()+'.');
+    var sp = speciesInfo[node.species] || {use:'foraging', note:''};
+    bTitle.textContent = (node.name||ft.name)+' — found.';
+    bText.textContent = node.species+': '+sp.note+' (+'+qty+' in my pouch)';
+    setAct('Foraging — gathering '+node.species);
+    addLog('<b>I foraged '+node.species+' at '+ (node.name||'a patch') +'.</b> '+sp.note+' For '+sp.use+'. Pouch now holds '+carriedCount()+'.');
+    renderForageGuide();
     renderNeeds(currentAct()); renderTasks();
   }
 
@@ -1233,12 +1392,24 @@ button{min-height:44px;font-family:inherit}
   /* ---- FORAGE PATCHES — real gatherable plants scattered over the whole circle ---- */
   /* all 18 patches sit inside the manual's bounds: |x|,|z| <= 35, distance < 38 */
   var forageDefs = [
-    {type:'berries', x:-20, z:-28},{type:'berries', x:18, z:29},{type:'berries', x:24, z:-20},
-    {type:'mint', x:22, z:22},{type:'mint', x:-6, z:24},{type:'mint', x:-33, z:-2},
-    {type:'mushroom', x:-24, z:27},{type:'mushroom', x:8, z:-28},{type:'mushroom', x:19, z:26},
-    {type:'flower', x:-12, z:-18},{type:'flower', x:14, z:-14},{type:'flower', x:-30, z:6},
-    {type:'herb', x:20, z:-28},{type:'herb', x:-14, z:30},{type:'herb', x:32, z:2},
-    {type:'berries', x:4, z:31},{type:'mint', x:10, z:33},{type:'flower', x:-25, z:-21}
+    {type:'berries', species:'serviceberries', name:'Berry Bend', x:-20, z:-28},
+    {type:'berries', species:'raspberries', name:'Raspberry Row', x:18, z:29},
+    {type:'berries', species:'blueberries', name:'Blueberry Hollow', x:24, z:-20},
+    {type:'mint', species:'spearmint', name:'Mint Corner', x:22, z:22},
+    {type:'mint', species:'peppermint', name:'Peppermint Bank', x:-6, z:24},
+    {type:'mint', species:'fieldmint', name:'Field Mint Meadow', x:-33, z:-2},
+    {type:'mushroom', species:'chanterelles', name:'Chanterelle Corner', x:-24, z:27},
+    {type:'mushroom', species:'oyster', name:'Oyster Log', x:8, z:-28},
+    {type:'mushroom', species:'morels', name:'Morel Hollow', x:19, z:26},
+    {type:'flower', species:'calendula', name:'Calendula Bed', x:-12, z:-18},
+    {type:'flower', species:'wildrose', name:'Rosehip Hedge', x:14, z:-14},
+    {type:'flower', species:'elderflower', name:'Elderflower Bush', x:-30, z:6},
+    {type:'herb', species:'sage', name:'Sage Bed', x:20, z:-28},
+    {type:'herb', species:'yarrow', name:'Yarrow Patch', x:-14, z:30},
+    {type:'herb', species:'nettle', name:'Nettle Corner', x:32, z:2},
+    {type:'berries', species:'strawberries', name:'Strawberry Patch', x:4, z:31},
+    {type:'mint', species:'lemonbalm', name:'Lemon Balm Patch', x:10, z:33},
+    {type:'flower', species:'chamomile', name:'Chamomile Field', x:-25, z:-21}
   ];
   var forageColors = {berries:0x5b4bc4, mint:0x3fae6a, mushroom:0xe8dcc0, flower:0xe86a92, herb:0x74b06a};
   forageDefs.forEach(function(def, idx){
@@ -1253,7 +1424,7 @@ button{min-height:44px;font-family:inherit}
     }
     var ring = new THREE.Mesh(new THREE.RingGeometry(1.05, 1.3, 20), new THREE.MeshBasicMaterial({color:0xf2c96d, transparent:true, opacity:0.55, side:THREE.DoubleSide}));
     ring.rotation.x = -Math.PI/2; ring.position.y = 0.06; g.add(ring);
-    var node = {type:def.type, x:def.x, z:def.z, group:g, available:true, respawnAt:0, id:idx};
+    var node = {type:def.type, species:def.species, name:def.name, x:def.x, z:def.z, group:g, available:true, respawnAt:0, id:idx};
     g.traverse(function(o){ o.userData.forageNode = node; });
     forageNodesRef.push(node);
     scene.add(g);
@@ -1386,6 +1557,7 @@ button{min-height:44px;font-family:inherit}
 
   /* ---- Mirror Pond (12,17) ---- */
   var pondWater;
+  var ducksRef = []; /* Dilly, Mabel, Pip — real ducks, in the water */
   (function(){
     var g = new THREE.Group(); g.position.set(places.pond.x, 0, places.pond.z);
     var sand = cyl(9.6, 9.9, 0.22, M.path, 0, 0.11, 0, g, 30); sand.castShadow = false;
@@ -1407,6 +1579,17 @@ button{min-height:44px;font-family:inherit}
       var ra = r/7*Math.PI*2 + 0.3;
       cyl(0.05, 0.07, 1.6 + (r%3)*0.4, M.leaf, Math.cos(ra)*9.1, 0.8, Math.sin(ra)*9.1, g, 6);
     }
+    /* real ducks: Dilly (white), Mabel (brown), Pip (small). They drift round
+       the pond in slow circles, bobbing. Fern talks to them — they supervise. */
+    [['Dilly',0xffffff,0,2.5,0.9],['Mabel',0x8a6b4f,2.2,4.2,0.7],['Pip',0x9a8a7a,4.4,-1.5,1.1]].forEach(function(dd, di){
+      var d = new THREE.Group();
+      var body = ball(0.55, mat(dd[1], 0.6), 0, 0.45, 0, d); body.scale.set(1.5, 0.75, 1);
+      ball(0.32, mat(dd[1], 0.6), 0.7, 0.78, 0, d);
+      box(0.28, 0.1, 0.18, mat(0xe8912d, 0.6), 1.0, 0.74, 0, d);
+      d.position.set(dd[2], 0, dd[3]);
+      g.add(d);
+      ducksRef.push({group:d, name:dd[0], angle:dd[4]*Math.PI, radius:3 + di*1.1, speed:0.05 + di*0.015, phase:di*2.1});
+    });
     tagPlace(g, 'pond', 6.4);
   })();
 
@@ -1660,6 +1843,13 @@ button{min-height:44px;font-family:inherit}
 
       /* pond shimmer + drifting clouds */
       if(pondWater){ pondWater.position.y = 0.2 + Math.sin(now/1400)*0.03; }
+      ducksRef.forEach(function(d){
+        d.angle += dt * d.speed;
+        d.group.position.x = Math.cos(d.angle) * d.radius;
+        d.group.position.z = Math.sin(d.angle) * d.radius;
+        d.group.position.y = Math.sin(now/500 + d.phase) * 0.05;
+        d.group.rotation.y = -d.angle;
+      });
       if(!reduced){ clouds.position.x = Math.sin(now/26000)*4; clouds.position.z = Math.cos(now/34000)*2; }
 
       /* camera follow */

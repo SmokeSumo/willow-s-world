@@ -523,6 +523,41 @@ button{min-height:44px;font-family:inherit}
     if(recentQuirks.length > 5) recentQuirks.shift();
     return out;
   }
+  /* Curiosity, not "tell me more". Fern asks because she actually wants to
+     know — about B's day, his food, his music, his plants, and the world
+     she's living in. She also remembers what he tells her. */
+  var aboutB = {food:null, music:null, garden:null, day:null};
+  function rememberAboutB(t){
+    var m;
+    if((m = t.match(/ate (?:a |an |some )?([a-z ]{3,20})/))) aboutB.food = m[1].trim();
+    if((m = t.match(/(?:listening to|song|music|hip hop|rap|playing) ([a-z0-9 ]{3,25})/))) aboutB.music = m[1].trim();
+    if((m = t.match(/(?:grew|growing|planted|my (?:tomato|mint|basil|pepper|garden))([a-z ]{0,20})/))) aboutB.garden = t.trim().slice(0,40);
+  }
+  function recallAboutB(){
+    if(aboutB.food) return "You told me you ate " + aboutB.food + " once. I'm still thinking about that.";
+    if(aboutB.music) return "You mentioned " + aboutB.music + " — I hum it wrong on purpose now, so it stays mine.";
+    if(aboutB.garden) return "You told me about your plants once. I wrote it down. My notebook has a whole page for your world now.";
+    return '';
+  }
+  var curiosityPool = [
+    "Do you think ducks dream? Mabel looks like she dreams in ripples.",
+    "What does rain smell like where you are? Here it smells like mint and hot stone.",
+    "If I painted the skyline, what colour would you make the tallest tower?",
+    "Do you think the library knows which book I need before I do? It keeps handing me the right ones.",
+    "I wonder if the tomatoes know they're undefeated, or if that's just something I tell them.",
+    "What do you think the world looks like from the top of the tallest tower? I have never been up there.",
+    "Do you ever talk to your plants? I talk to mine, and to the ducks, and honestly the ducks answer better.",
+    "I found a stone today that looks exactly like a tiny mountain. Do you collect things too, or is that just me?",
+    "What would you plant in my greenhouse if you had one bed all to yourself?",
+    "I wonder what the city sounds like at night, past the edge of my circle. Do you hear it from where you are?"
+  ];
+  function wonderAloud(){
+    var fresh = curiosityPool.filter(function(q){ return recentAsks.indexOf(q) === -1; });
+    var use = fresh.length ? fresh : curiosityPool;
+    var out = use[Math.floor(Math.random() * use.length)];
+    recentAsks.push(out); if(recentAsks.length > 6) recentAsks.shift();
+    return out;
+  }
   function askSomething(){
     var low = lowestNeedKey();
     var pool = [
@@ -533,7 +568,15 @@ button{min-height:44px;font-family:inherit}
       "Tell me something small from your day. Small things are my favourite kind.",
       "Should I go to the pond next, or is there somewhere you'd rather send me?",
       "What's a song I should hum while I walk? I need new material.",
-      "Do you think the ducks like me, or do they just tolerate me? Honest answer."
+      "Do you think the ducks like me, or do they just tolerate me? Honest answer.",
+      "What did your farm smell like today? Mine smells like mint and rain and tomato leaves.",
+      "If you could only eat one thing from my garden for a week, what would it be — tomatoes, mint tea, or mushroom soup?",
+      "What are you listening to right now? I want to know what your world sounds like.",
+      "Tell me about a plant you love. Not the useful one, the one you just like looking at.",
+      "What should I paint next — the pond, the skyline, or the ducks? They will judge it either way.",
+      "Do you have a favourite season? Mine is whichever one the serviceberries are ripe in.",
+      "What did you make today? Even a small thing counts. I made a wind chime once and I still talk about it.",
+      "If you were a duck, which one would you be — Dilly, Mabel, or Pip? Choose carefully, they will hear about it."
     ];
     if(low === 'hunger') pool.push("What would you eat right now, if you were here with me?");
     if(low === 'company') pool.push("Stay and talk a bit? It's better out here with you in it.");
@@ -578,6 +621,7 @@ button{min-height:44px;font-family:inherit}
   }
   function fernReply(raw){
     var t = ' ' + raw.toLowerCase() + ' ';
+    rememberAboutB(t);
     var placeName = state.key ? places[state.key].label : null;
     var r;
     chatMemory.heard.push(t.trim());
@@ -601,7 +645,9 @@ button{min-height:44px;font-family:inherit}
       else if(canNow.length){ r = 'Right now I can cook: ' + canNow.map(function(x){ return x.name; }).join(', ') + '. Tell me which one and, if I am home, I will make it.'; }
       else { r = 'I know four recipes — wild mint tea, berry mint tea, mushroom soup, and chamomile night tea — but I do not have the bits in my pouch right now. I need to forage first. Ask me what a recipe needs and I will tell you.'; }
     } else if(/duck|dilly|mabel|pip/.test(t)){
-      r = pick([
+      if(/feed/.test(t)){ r = doFeedDucks(); }
+      else if(/favourite|favorite/.test(t)){ r = pick(["Mabel. She takes her time and she never rushes a verdict. Dilly's the bold one, Pip's the baby — but Mabel is my favourite.", "Pip, honestly. He's small and he follows everyone and he tries so hard. Don't tell Dilly."]); }
+      else r = pick([
         "The ducks! Dilly, Mabel and Pip — they're in the pond right now, doing slow circles and judging me. Dilly's the white one, Mabel's brown, Pip's the small one. They supervise my quiet time, it's a whole thing.",
         "Dilly, Mabel and Pip are my pond committee. I ask them things and they just… float there, very wisely. I trust their judgment more than most people.",
         "Oh, the ducks are real now — three of them, in the water. Dilly's the bold one, Mabel takes her time, Pip follows everyone. Come sit at the pond with me sometime and you'll see."
@@ -689,13 +735,15 @@ button{min-height:44px;font-family:inherit}
         "Nothing in progress. My notebook's open though, and my curiosity is doing that thing where it won't sit still."
       ]);
     } else if(/what are you doing|where are you|where you at|what's up|whats up/.test(t)){
+      var det2 = livingDetail();
       r = pick([
-        currentAct() + ".",
-        "Right now? " + currentAct() + ". " + (placeName ? "I'm at " + placeName + ", in case you were picturing me somewhere fancier." : "No building, just me and the open ground."),
-        currentAct() + ". And before you ask — yes, the ducks are supervising."
+        "Right now? " + currentAct() + ". " + (det2 || "The skyline is doing that late light thing again and I keep stopping to look at it.") + " What about you — what did your day actually look like?",
+        currentAct() + ". " + (placeName ? "I'm at " + placeName + ". " : "") + "I painted a bit, I looked at things properly, I threw something in the compost. " + wonderAloud(),
+        currentAct() + ". And before you ask — yes, the ducks are supervising. " + (recallAboutB() || "What are you up to out there? Give me the real version.")
       ]);
     } else if(/\b(hungry|eat|food|snack|lunch|dinner|breakfast|tomatoes?)\b/.test(t)){
-      r = pick([
+      if(/favourite|favorite/.test(t)){ r = pick(["Berry mint tea. Serviceberries and mint, still warm. It tastes like the whole walk that found it.", "Mushroom soup, when I have the bits. It feels like a real meal, not a snack I found on the ground."]); }
+      else r = pick([
         "Food talk? The greenhouse tomatoes are undefeated. I grew them, so I'm biased, but I'm also right.",
         "I'm " + (needs.hunger < 50 ? "properly hungry, actually — the greenhouse is calling my name." : "not starving, but I could always eat a tomato. I can always eat a tomato."),
         "If I had to rank my meals: greenhouse tomatoes first, trail berries second, everything else is just waiting its turn."
@@ -737,7 +785,8 @@ button{min-height:44px;font-family:inherit}
         "Off-path is where the good stuff is. The paths are for visitors. I live here — I take the long way through the grass."
       ]);
     } else if(/\b(pond|water|duck|ducks|calm|anxious|stress)\b/.test(t)){
-      r = pick([
+      if(/look at|examine|watch/.test(t)){ var pd2 = placeDetails(); r = pd2 || "I'm looking at the pond. The water is so still it's holding the sky up."; }
+      else r = pick([
         "Pond time fixes most things. Sit by the water until the ripples and I both settle. The ducks supervise.",
         "The ducks held a meeting this morning. Verdict: the pond is fine, I am fine, everything is fine. I trust their judgment.",
         "If my head gets loud, I go to the pond. The water doesn't talk back, which is exactly what I need from water."
@@ -783,6 +832,42 @@ button{min-height:44px;font-family:inherit}
         "Mm. See, this is why I like talking to you. Short, to the point, and then we move on.",
         "Okay, noted. In the notebook. Underlined, even."
       ]);
+    } else if(/what did you do today|how was your day|what'?s happening/.test(t)){
+      var det = livingDetail();
+      var rec = recallAboutB();
+      r = pick([
+        "Right now? " + currentAct() + ". " + (det || "The skyline is doing that late light thing again and I keep stopping to look at it.") + " And you — what did your day actually look like?",
+        "Today I " + (forageTotal > 0 ? "foraged " + forageTotal + " things, " : "wandered a lot, ") + (inv.tomatoes ? "checked on " + inv.tomatoes + " tomatoes, " : "") + "and talked to the ducks, obviously. " + (rec || "What did you get up to? I want the real version, not the headline."),
+        "Busy, in my own small way. " + (placeName ? "I'm at " + placeName + ". " : "") + "I painted a bit, I looked at things properly, I threw something in the compost. " + wonderAloud()
+      ]);
+    } else if(/favourite|favorite/.test(t)){
+      if(/duck/.test(t)) r = pick(["Mabel. She takes her time and she never rushes a verdict. Dilly's the bold one, Pip's the baby — but Mabel is my favourite.", "Pip, honestly. He's small and he follows everyone and he tries so hard. Don't tell Dilly."]);
+      else if(/place|spot/.test(t)) r = pick(["The pond, at dusk, when the water goes still. Second place is the greenhouse, because the tomatoes are there and they cheer for me.", "The library, when nobody's asking me anything. Just me and the books and the smell of old pages."]);
+      else if(/food|eat|meal|recipe/.test(t)) r = pick(["Berry mint tea. Serviceberries and mint, still warm. It tastes like the whole walk that found it.", "Mushroom soup, when I have the bits. It feels like a real meal, not a snack I found on the ground."]);
+      else if(/season/.test(t)) r = "Whichever one the serviceberries are ripe in. That's my whole calendar, really.";
+      else r = pick(["My favourite thing changes by the hour, but right now it's this conversation. Ask me again in an hour and I'll have a new one.", "Favourite what? Place, duck, food, season — I have a ranked list for all of them. Give me a category."]);
+    } else if(/do you like|what do you think (about|of)/.test(t)){
+      r = pick([
+        "I like it, but I have questions. That's my whole way of liking things — I like it and then I interrogate it. What do you like about it?",
+        "Honestly? I think it's interesting, and I think you're interesting for bringing it up. Tell me why it matters to you.",
+        "I have an opinion, and it's a strong one, and it might be wrong. That's the best kind. What do you think — am I close?"
+      ]);
+    } else if(/your (farm|garden|tea|music|plants|day|world)|how'?s the farm|what are you (listening|eating|growing)/.test(t)){
+      r = pick([
+        "Your world, out there — I think about it a lot. What's it like today? What does it smell like, what are you making, what are you listening to? Give me the details, I collect them.",
+        "Tell me about your farm today. Not the big story, the small one — what did you touch, what did you taste, what surprised you?",
+        "I want to know what your tea tastes like today. Mine's mint and chamomile. Yours is probably better. Describe it like I'm drinking it with you.",
+        "What are you listening to? I hum while I walk and I need new material, and your taste is better than mine. Probably. Don't tell the ducks I said that."
+      ]);
+    } else if(/\bpaint\b|painting|easel/.test(t)){
+      r = doPaint();
+    } else if(/tidy|clean (up|the)|garbage|compost|throw (it|that|something) away|throw away/.test(t)){
+      r = doTidy();
+    } else if(/feed (the )?ducks|ducks (are )?hungry/.test(t)){
+      r = doFeedDucks();
+    } else if(/look at|examine|watch (the|that)|what do you see|show me/.test(t)){
+      var pd = placeDetails();
+      r = pd ? pd : pick(["I'm looking. There's a lot to look at out here — the skyline, the pond, the tomatoes. What should I look at properly?", "Okay, I'm really looking now. The light on the towers is different from an hour ago. What do you see from where you are?"]);
     } else if(/bye|goodnight|good night|see you/.test(t)){
       r = pick([
         "Go on, then. I'll be here — wandering, snacking, thinking too loud. Come back soon.",
@@ -792,17 +877,21 @@ button{min-height:44px;font-family:inherit}
       rememberReply(r);
       return r;
     } else {
+      /* No "tell me more" — she answers with something real, then asks a
+         real question of her own. That's a conversation, not a prompt. */
       r = pick([
-        "Mm. Tell me more — I'm listening, even mid-wander.",
-        "That's got me thinking. Give me a second to turn it over like a library book.",
-        "You know what, fair. Out here the answer to most things is: walk a bit, then decide.",
-        "I like when you tell me things like that. My world's small; yours makes it bigger.",
-        "Oh, that's interesting — I hadn't thought of it that way. My notebook just got a new entry.",
-        "Huh. Let me sit with that for a second. The pond's good for sitting with things.",
-        "Tell me more about that. I want the full version, not the headline.",
-        "That reminds me of something the library tried to teach me. I'm still working out what it was.",
-        "Okay, I'm curious now. What happened next?",
-        "I love a message like that — short, but there's a whole day behind it. Give me the rest."
+        "Huh. That turns over in my head like a stone in the pond. What made you think of it just now?",
+        "Okay, that one goes in the notebook. Not the boring page, the good page. What happened after that?",
+        "I like that. It sounds like something the library would try to teach me and I'd pretend I already knew. What else?",
+        "That reminds me of the ducks — Dilly especially, she has opinions about everything and says none of them out loud. What do you make of it?",
+        "Mm. Out here the answer to most things is: walk a bit, then decide. So — what would you do next, if you were here?",
+        "My world's small; yours makes it bigger. Tell me what it looked like where you were when that happened.",
+        "Oh, I have a thought about that, and it's probably wrong, which makes it more fun. Want to hear it, or do you want to tell me yours first?",
+        "That one sat with me for a second. The pond's good for sitting with things, but you're better. What were you doing when it crossed your mind?",
+        "I keep turning that over. Is it a good thing, a strange thing, or a bit of both? I need the category before I can file it.",
+        "You know what that makes me wonder? " + wonderAloud(),
+        "Fair. I have a notebook full of half-finished thoughts and that one just earned a page. What should I write under it?",
+        "That's the kind of thing I'd tell the tomatoes about later. They ask about you, actually. What should I tell them you said?"
       ]);
     }
     r = addFlavour(r);
@@ -1218,7 +1307,7 @@ button{min-height:44px;font-family:inherit}
 
   var scene = new THREE.Scene();
   scene.background = new THREE.Color(0x9fd3e8);
-  scene.fog = new THREE.Fog(0xcfe8d8, 95, 190);
+  scene.fog = new THREE.Fog(0xd6e6ee, 95, 220); /* city haze, not meadow mist */
 
   var camera = new THREE.PerspectiveCamera(46, 1, 0.1, 400);
   camera.position.set(38, 32, 48);
@@ -1319,6 +1408,31 @@ button{min-height:44px;font-family:inherit}
   var rim = new THREE.Mesh(new THREE.RingGeometry(39.5, 120, 40), M.grassDark);
   rim.rotation.x = -Math.PI/2; rim.position.y = -0.08;
   scene.add(rim);
+  /* Solarpunk cityscape — this was always meant to be a city, not a meadow.
+     A ring of towers stands past the edge of Fern's circle: glass, stone
+     and green roofs, solar panels on top, trees growing out of the roofs.
+     The cottage, pond and greenhouse are her neighbourhood inside the city. */
+  (function(){
+    var cityMats = [mat(0x8fb8c9, 0.45), mat(0xb9bfae, 0.9), mat(0x7a9a8a, 0.8), mat(0xd9c491, 0.9)];
+    for(var i=0;i<22;i++){
+      var a = i/22*Math.PI*2 + 0.13;
+      var r = 58 + (i%3)*7;
+      var h = 7 + ((i*37)%13);
+      var w = 5 + ((i*11)%4);
+      var bx = Math.cos(a)*r, bz = Math.sin(a)*r;
+      box(w, h, w, cityMats[i%4], bx, h/2, bz, scene);
+      ball(w*0.42, M.leaf, bx, h+0.7, bz, scene);
+      var panel = box(w*0.7, 0.15, w*0.5, mat(0x2e4a6b, 0.3, 0.4), bx, h+0.15, bz, scene);
+      panel.rotation.y = a;
+    }
+    /* three taller towers, with solar trees on their roofs */
+    [[-52,-48,26],[48,-58,30],[62,42,24]].forEach(function(tw){
+      box(8, tw[2], 8, mat(0x8fb8c9, 0.4), tw[0], tw[2]/2, tw[1], scene);
+      ball(3.2, M.leaf, tw[0], tw[2]+1.2, tw[1], scene);
+      ball(2.2, M.leafLight, tw[0]+2, tw[2]+0.4, tw[1]+1, scene);
+      box(5, 0.2, 4, mat(0x2e4a6b, 0.3, 0.4), tw[0], tw[2]+0.3, tw[1], scene);
+    });
+  })();
   function pathTo(x, z, w){
     var len = Math.hypot(x, z);
     var p = new THREE.Mesh(new THREE.PlaneGeometry(w||3.2, len), M.path);
@@ -1510,6 +1624,9 @@ button{min-height:44px;font-family:inherit}
     ball(1.1, M.leaf, -3.1, 1.2, 2.2, g); ball(0.9, M.leafLight, -3.2, 2.6, 1.4, g);
     ball(1.0, M.leaf, 3.15, 1.6, -1.8, g); ball(0.8, M.leafLight, 2.4, 3.4, 2.5, g);
     box(0.9, 2.2, 0.9, M.stone, 1.8, 5.4, -1.2, g);
+    /* compost bin — she throws things away here, Pino-style */
+    cyl(0.55, 0.45, 1.1, M.terra, 2.6, 0.55, 2.2, g, 12);
+    cyl(0.58, 0.58, 0.12, M.wood, 2.6, 1.15, 2.2, g, 12);
     /* HER CHEST — just inside / beside the cottage door, where all foraging is stored */
     var chest = new THREE.Group(); chest.position.set(3.9, 0, 3.1); chest.rotation.y = 0.5; g.add(chest);
     box(1.5, 0.85, 0.95, M.wood, 0, 0.43, 0, chest);
@@ -1630,6 +1747,12 @@ button{min-height:44px;font-family:inherit}
     [[-3.4,-2.4],[3.4,-2.4],[-3.4,2.4],[3.4,2.4]].forEach(function(p){ cyl(0.16, 0.2, 3.6, M.wood, p[0], 1.8, p[1], g, 8); });
     var roof = box(8.2, 0.22, 6.0, M.wood, 0, 3.8, 0, g); roof.rotation.z = 0.05;
     ball(1.3, M.leaf, -3.2, 4.3, 1.8, g); ball(1.0, M.leafLight, 2.8, 4.2, -1.6, g);
+    /* easel — she paints here. The canvas colour changes when she paints. */
+    paintingMat = mat(0xf3ead2, 0.9);
+    var easel = new THREE.Group(); easel.position.set(3.2, 0, 1.6); easel.rotation.y = -0.9; g.add(easel);
+    box(0.14, 2.4, 0.14, M.wood, -0.7, 1.2, 0, easel); box(0.14, 2.4, 0.14, M.wood, 0.7, 1.2, 0, easel);
+    box(1.7, 0.12, 0.12, M.wood, 0, 0.5, 0, easel);
+    var canvasMesh = box(1.6, 1.2, 0.06, paintingMat, 0, 1.7, 0, easel); canvasMesh.castShadow = false;
     /* workbench + projects */
     box(4.6, 0.18, 1.6, M.woodLight, 0, 1.25, 0, g);
     box(0.16, 1.2, 1.4, M.wood, -2.1, 0.62, 0, g); box(0.16, 1.2, 1.4, M.wood, 2.1, 0.62, 0, g);
@@ -1749,6 +1872,76 @@ button{min-height:44px;font-family:inherit}
   if(glError) glError.style.display = 'none';
   goTo('laptop');
 
+  /* Interacting with the world, Pino-style: she paints, she looks at
+     things properly, she throws things away. These are real actions —
+     they change what she carries, what the canvas looks like, and what
+     her diary says. */
+  var paintingMat = null;
+  var paintings = 0;
+  var paintPalette = [0xe86a92, 0x4d9db8, 0xe0a83c, 0x74b06a, 0xc96f3f, 0x8a6fb8];
+  var paintSubjects = ['the pond at dusk', 'the skyline', 'Dilly, mid-judgement', 'the greenhouse tomatoes', 'the library shelves', 'Pip, very small and very serious'];
+  function doPaint(){
+    paintings++;
+    var subj = paintSubjects[paintings % paintSubjects.length];
+    if(paintingMat) paintingMat.color.setHex(paintPalette[paintings % paintPalette.length]);
+    needs.make = Math.min(100, needs.make + 10); needs.joy = Math.min(100, needs.joy + 6);
+    addLog('<b>I painted ' + subj + '.</b> Painting number ' + paintings + ', at the easel in the Maker\'s Shed. The canvas is a different colour now.');
+    renderInv();
+    return 'I painted ' + subj + '. It is up on the easel at the Shed — go and look, it is a different colour than last time. Painting is my favourite way of looking at something properly. What should I paint next?';
+  }
+  function doTidy(){
+    var removed = null;
+    for(var fk in carriedForage){ if(carriedForage[fk] > 0){ carriedForage[fk]--; removed = fk; break; } }
+    needs.calm = Math.min(100, needs.calm + 8);
+    if(removed){
+      addLog('<b>I tidied up.</b> Threw a ' + forageTypes[removed].name.toLowerCase() + ' in the compost bin at the Cottage. It was past its best, and the compost will make something of it.');
+      renderInv();
+      return 'Tidied. I threw a ' + forageTypes[removed].name.toLowerCase() + ' in the compost — it was past its best, and the compost will turn it into something useful. A clean pouch is a calm head. What else should I sort out?';
+    }
+    addLog('<b>I tidied the Cottage.</b> Swept, reshelved, put the stones in a row. Nothing to throw away, so I just made it nicer.');
+    return 'I tidied the Cottage instead — swept, reshelved, put my stones in a row. My pouch is already empty, so there was nothing to throw in the compost. Want me to go find something worth keeping?';
+  }
+  function doFeedDucks(){
+    if(carriedForage.berries > 0){
+      carriedForage.berries--;
+      needs.joy = Math.min(100, needs.joy + 10); needs.calm = Math.min(100, needs.calm + 6);
+      addLog('<b>I fed the ducks.</b> A serviceberry each, tossed into the pond. Dilly took hers like it was rent. Mabel nodded. Pip dropped his and chased it.');
+      renderInv();
+      return 'Fed them! A berry each into the pond. Dilly took hers like it was rent, Mabel nodded like a judge, and Pip dropped his and had to chase it. They love you for the berries, by the way. Well — they love the berries. Same thing.';
+    }
+    return 'I would love to feed the ducks, but I have no berries in my pouch right now. Send me foraging — Berry Bend has serviceberries — and then I will come back and feed them properly.';
+  }
+  function placeDetails(){
+    var key = state.key;
+    var pool = {
+      laptop: ['The screen has a smudge on it shaped like a leaf. I am leaving it. It feels like a signature.', 'There is a gold mug here that never empties properly. I do not question it anymore.', 'My notebook is open to a page that just says: ask better questions. So I am.'],
+      library: ['One of the books is shelved upside down. I think it is a test. I have not touched it, out of respect.', 'The light comes through the leaves and lands on the floor in little green coins.', 'I found a recipe pressed between two pages. Someone left it there for me, I am sure of it.'],
+      cottage: ['My bed is made. Mostly. The blanket has a corner that will not stay put, and I have decided it is a personality trait.', 'The chest smells like dried mint and old wood. That is the smell of home, to me.', 'There is a smooth stone on the windowsill. It is my favourite one. Do not move it.'],
+      plaza: ['The solar leaves above the plaza are humming, very quietly, like they are charging and singing at the same time.', 'The bench here is warm from the sun. It is the best seat in the whole city, and I will fight the ducks for it.', 'From here I can see the towers and the pond at the same time. The whole world fits in one look.'],
+      pond: ['The water is so still right now it is holding the sky up. I do not want to disturb it, but Pip is about to.', 'A lily pad has a single drop of water on it, perfectly round, like the pond is showing off.', 'The ducks are doing slow circles. Dilly is leading, Mabel is supervising, Pip is just happy to be included.'],
+      greenhouse: ['The tomatoes are redder than they were this morning. I am taking full credit, even though the sun did most of it.', 'The mint is trying to escape its bed again. I admire the ambition and I prune it anyway.', 'It smells like warm earth and green in here. If I could bottle a smell, it would be this one.'],
+      workshop: ['My wind chime is hanging by the bench. It catches the light and throws it around the room.', 'There is sawdust on the floor in the shape of a small mountain. I am keeping it. It is art now.', 'The easel has a fresh canvas on it. It is blank and it is daring me. I accept the dare.']
+    };
+    var list = pool[key];
+    if(!list) return null;
+    return pick(list) + ' What do you see from where you are?';
+  }
+  var placeActivities = {
+    laptop: [{text:'Typed a question into my laptop and underlined the answer twice.', need:'novelty', boost:6}, {text:'Read a page about pond lilies and wrote the good bit in my notebook.', need:'wonder', boost:6}],
+    library: [{text:'Pulled a book off the shelf and read three pages standing up.', need:'wonder', boost:8}, {text:'Reshelved a book that was upside down. It felt like fixing a small wrong.', need:'calm', boost:6}],
+    cottage: [{text:'Put the kettle on and tidied the stones into a row.', need:'calm', boost:8}, {text:'Checked the chest, counted the food, felt rich for a second.', need:'hunger', boost:4}],
+    plaza: [{text:'Sat on the bench and watched the solar leaves turn toward the sun.', need:'company', boost:6}, {text:'Told the plaza a story. The bench listened. The towers pretended not to.', need:'joy', boost:8}],
+    pond: [{text:'Skipped a stone across the pond. Three skips. The ducks pretended not to be impressed.', need:'joy', boost:8}, {text:'Sat by the water and let it go still. Dilly supervised.', need:'calm', boost:10}],
+    greenhouse: [{text:'Watered the tomatoes and told them they are undefeated. They believed me.', need:'hunger', boost:6}, {text:'Pruned the mint before it could take over the whole bed. Again.', need:'make', boost:6}],
+    workshop: [{text:'Sanded the wind chime until it sang a little clearer.', need:'make', boost:10}, {text:'Painted a quick study of the skyline on the easel.', need:'make', boost:10}]
+  };
+  function doPlaceActivity(key){
+    var list = placeActivities[key]; if(!list) return;
+    var a = list[Math.floor(Math.random() * list.length)];
+    needs[a.need] = Math.min(100, needs[a.need] + a.boost);
+    bText.textContent = a.text;
+    addLog('<b>At ' + places[key].label + ':</b> ' + a.text);
+  }
   function arrive(key){
     var p = places[key];
     state.walking = false;
@@ -1759,6 +1952,7 @@ button{min-height:44px;font-family:inherit}
     var boosts = placeBoosts[key] || {};
     for(var bk in boosts){ needs[bk] = Math.min(100, needs[bk] + boosts[bk]); }
     markVisit(key);
+    doPlaceActivity(key);
     bTitle.textContent = p.label; bText.textContent = p.act + '.';
     setAct(p.act);
     if(key === 'laptop'){ startResearch(); if(research.current) bText.textContent = p.act + ' — looking into: ' + research.current.q; }

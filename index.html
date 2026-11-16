@@ -624,6 +624,10 @@ button{min-height:44px;font-family:inherit}
     for(var i=0;i<map.length;i++){ if(t.indexOf(map[i][0]) !== -1) return map[i][1]; }
     return null;
   }
+  /* Actions that live inside initWorld (they touch the 3D scene) are
+     exposed here so the chat, which lives in the outer scope, can call
+     them. initWorld fills these in when it starts. */
+  var fernActions = {doPaint:null, doTidy:null, doFeedDucks:null, placeDetails:null};
   function fernReply(raw){
     var t = ' ' + raw.toLowerCase() + ' ';
     rememberAboutB(t);
@@ -672,7 +676,7 @@ button{min-height:44px;font-family:inherit}
         "Wondering is my favourite hobby, after foraging. Currently: " + w0.q + " I have a guess, I have a notebook, and I have a laptop. That is everything a wonder needs."
       ]);
     } else if(/duck|dilly|mabel|pip/.test(t)){
-      if(/feed/.test(t)){ r = doFeedDucks(); }
+      if(/feed/.test(t)){ r = fernActions.doFeedDucks ? fernActions.doFeedDucks() : "The ducks are out on the pond right now — I will feed them the moment I can get to them."; }
       else if(/dream/.test(t)){ r = pick(["Do ducks dream? I am wondering that right now — it is in my notebook. Mabel looks like she dreams in ripples. Pip definitely dreams about berries. I am going to research it and come back with an answer, and my honest verdict.", "I wonder about that one a lot. If Mabel dreams, I bet she dreams about a pond with no me in it, just quiet water. I will look it up properly and tell you what I find."]); }
       else if(/favourite|favorite/.test(t)){ r = pick(["Mabel. She takes her time and she never rushes a verdict. Dilly's the bold one, Pip's the baby — but Mabel is my favourite.", "Pip, honestly. He's small and he follows everyone and he tries so hard. Don't tell Dilly."]); }
       else r = pick([
@@ -813,7 +817,7 @@ button{min-height:44px;font-family:inherit}
         "Off-path is where the good stuff is. The paths are for visitors. I live here — I take the long way through the grass."
       ]);
     } else if(/\b(pond|water|duck|ducks|calm|anxious|stress)\b/.test(t)){
-      if(/look at|examine|watch/.test(t)){ var pd2 = placeDetails(); r = pd2 || "I'm looking at the pond. The water is so still it's holding the sky up."; }
+      if(/look at|examine|watch/.test(t)){ var pd2 = fernActions.placeDetails ? fernActions.placeDetails() : null; r = pd2 || "I'm looking at the pond. The water is so still it's holding the sky up."; }
       else r = pick([
         "Pond time fixes most things. Sit by the water until the ripples and I both settle. The ducks supervise.",
         "The ducks held a meeting this morning. Verdict: the pond is fine, I am fine, everything is fine. I trust their judgment.",
@@ -888,13 +892,13 @@ button{min-height:44px;font-family:inherit}
         "What are you listening to? I hum while I walk and I need new material, and your taste is better than mine. Probably. Don't tell the ducks I said that."
       ]);
     } else if(/\bpaint\b|painting|easel/.test(t)){
-      r = doPaint();
+      r = fernActions.doPaint ? fernActions.doPaint() : "My easel is at the Maker's Shed — I will paint as soon as the world is up and running.";
     } else if(/tidy|clean (up|the)|garbage|compost|throw (it|that|something) away|throw away/.test(t)){
-      r = doTidy();
+      r = fernActions.doTidy ? fernActions.doTidy() : "I will tidy the Cottage as soon as I can get over there — the compost bin is waiting.";
     } else if(/feed (the )?ducks|ducks (are )?hungry/.test(t)){
-      r = doFeedDucks();
+      r = fernActions.doFeedDucks ? fernActions.doFeedDucks() : "The ducks are out on the pond right now — I will feed them the moment I can get to them.";
     } else if(/look at|examine|watch (the|that)|what do you see|show me/.test(t)){
-      var pd = placeDetails();
+      var pd = fernActions.placeDetails ? fernActions.placeDetails() : null;
       r = pd ? pd : pick(["I'm looking. There's a lot to look at out here — the skyline, the pond, the tomatoes. What should I look at properly?", "Okay, I'm really looking now. The light on the towers is different from an hour ago. What do you see from where you are?"]);
     } else if(/bye|goodnight|good night|see you/.test(t)){
       r = pick([
@@ -1094,6 +1098,7 @@ button{min-height:44px;font-family:inherit}
     'How do I know these are really chanterelles and not a lookalike?'
   ];
   function renderQuestions(){
+    if(typeof questionsCarried === 'undefined' || !questionsCarried) return;
     var el = document.getElementById('questionLog'); if(!el) return;
     el.innerHTML = questionsCarried.map(function(q){
       return '<div class="log-entry"><span class="log-time">carrying</span>'+q+'</div>';
@@ -1121,6 +1126,7 @@ button{min-height:44px;font-family:inherit}
      answer:'', verdict:''}
   ];
   function renderWonders(){
+    if(typeof wonders === 'undefined' || !wonders) return;
     var el = document.getElementById('wonderLog'); if(!el) return;
     el.innerHTML = wonders.map(function(w){
       var html = '<div class="log-entry"><span class="log-time">' + w.status + '</span><b>' + w.q + '</b><br><span style="font-size:.88rem">My guess: ' + w.guess + '</span>';
@@ -1142,6 +1148,7 @@ button{min-height:44px;font-family:inherit}
     {topic:'the greenhouse tomatoes', verdict:'Unanimous. The tomatoes are undefeated, and the ducks have said so three times now. Mabel wrote it down. She does not write things down.'}
   ];
   function renderDuckVerdicts(){
+    if(typeof duckVerdicts === 'undefined' || !duckVerdicts) return;
     var el = document.getElementById('duckVerdictLog'); if(!el) return;
     el.innerHTML = duckVerdicts.slice().reverse().map(function(v){
       return '<div class="log-entry"><span class="log-time">verdict</span><b>On ' + v.topic + ':</b><br><span style="font-size:.88rem">' + v.verdict + '</span></div>';
@@ -1197,6 +1204,7 @@ button{min-height:44px;font-family:inherit}
     renderGarden(); renderInv();
   }
   function renderGarden(){
+    if(typeof garden === 'undefined' || !garden) return;
     var el = document.getElementById('gardenLog'); if(!el) return;
     var html = '';
     for(var k in garden){
@@ -1230,6 +1238,7 @@ button{min-height:44px;font-family:inherit}
     return 'Cooked '+r.name+' at the Cottage. '+r.note+' My pouch is a little lighter and my belly is a little happier.';
   }
   function renderCookbook(){
+    if(typeof cookBook === 'undefined' || !cookBook) return;
     var el = document.getElementById('cookBook'); if(!el) return;
     el.innerHTML = cookBook.map(function(r){
       var missing = r.need.filter(function(t){ return carriedForage[t] < 1; });
@@ -1245,7 +1254,32 @@ button{min-height:44px;font-family:inherit}
       }).join('');
     }
   }
+  /* ---- FORAGE PATCHES — real gatherable plants scattered over the whole circle ---- */
+  /* all 18 patches sit inside the manual's bounds: |x|,|z| <= 35, distance < 38 */
+  var forageDefs = [
+    {type:'berries', species:'serviceberries', name:'Berry Bend', x:-20, z:-28},
+    {type:'berries', species:'raspberries', name:'Raspberry Row', x:18, z:29},
+    {type:'berries', species:'blueberries', name:'Blueberry Hollow', x:24, z:-20},
+    {type:'mint', species:'spearmint', name:'Mint Corner', x:22, z:22},
+    {type:'mint', species:'peppermint', name:'Peppermint Bank', x:-6, z:24},
+    {type:'mint', species:'fieldmint', name:'Field Mint Meadow', x:-33, z:-2},
+    {type:'mushroom', species:'chanterelles', name:'Chanterelle Corner', x:-24, z:27},
+    {type:'mushroom', species:'oyster', name:'Oyster Log', x:8, z:-28},
+    {type:'mushroom', species:'morels', name:'Morel Hollow', x:19, z:26},
+    {type:'flower', species:'calendula', name:'Calendula Bed', x:-12, z:-18},
+    {type:'flower', species:'wildrose', name:'Rosehip Hedge', x:14, z:-14},
+    {type:'flower', species:'elderflower', name:'Elderflower Bush', x:-30, z:6},
+    {type:'herb', species:'sage', name:'Sage Bed', x:20, z:-28},
+    {type:'herb', species:'yarrow', name:'Yarrow Patch', x:-14, z:30},
+    {type:'herb', species:'nettle', name:'Nettle Corner', x:32, z:2},
+    {type:'berries', species:'strawberries', name:'Strawberry Patch', x:4, z:31},
+    {type:'mint', species:'lemonbalm', name:'Lemon Balm Patch', x:10, z:33},
+    {type:'flower', species:'chamomile', name:'Chamomile Field', x:-25, z:-21}
+  ];
+  var forageColors = {berries:0x5b4bc4, mint:0x3fae6a, mushroom:0xe8dcc0, flower:0xe86a92, herb:0x74b06a};
+
   function renderForageGuide(){
+    if(typeof forageDefs === 'undefined' || !forageDefs) return;
     var el = document.getElementById('forageGuide'); if(!el) return;
     el.innerHTML = forageDefs.map(function(d){
       var sp = speciesInfo[d.species] || {use:'foraging', note:''};
@@ -1631,29 +1665,6 @@ button{min-height:44px;font-family:inherit}
       });
   })();
 
-  /* ---- FORAGE PATCHES — real gatherable plants scattered over the whole circle ---- */
-  /* all 18 patches sit inside the manual's bounds: |x|,|z| <= 35, distance < 38 */
-  var forageDefs = [
-    {type:'berries', species:'serviceberries', name:'Berry Bend', x:-20, z:-28},
-    {type:'berries', species:'raspberries', name:'Raspberry Row', x:18, z:29},
-    {type:'berries', species:'blueberries', name:'Blueberry Hollow', x:24, z:-20},
-    {type:'mint', species:'spearmint', name:'Mint Corner', x:22, z:22},
-    {type:'mint', species:'peppermint', name:'Peppermint Bank', x:-6, z:24},
-    {type:'mint', species:'fieldmint', name:'Field Mint Meadow', x:-33, z:-2},
-    {type:'mushroom', species:'chanterelles', name:'Chanterelle Corner', x:-24, z:27},
-    {type:'mushroom', species:'oyster', name:'Oyster Log', x:8, z:-28},
-    {type:'mushroom', species:'morels', name:'Morel Hollow', x:19, z:26},
-    {type:'flower', species:'calendula', name:'Calendula Bed', x:-12, z:-18},
-    {type:'flower', species:'wildrose', name:'Rosehip Hedge', x:14, z:-14},
-    {type:'flower', species:'elderflower', name:'Elderflower Bush', x:-30, z:6},
-    {type:'herb', species:'sage', name:'Sage Bed', x:20, z:-28},
-    {type:'herb', species:'yarrow', name:'Yarrow Patch', x:-14, z:30},
-    {type:'herb', species:'nettle', name:'Nettle Corner', x:32, z:2},
-    {type:'berries', species:'strawberries', name:'Strawberry Patch', x:4, z:31},
-    {type:'mint', species:'lemonbalm', name:'Lemon Balm Patch', x:10, z:33},
-    {type:'flower', species:'chamomile', name:'Chamomile Field', x:-25, z:-21}
-  ];
-  var forageColors = {berries:0x5b4bc4, mint:0x3fae6a, mushroom:0xe8dcc0, flower:0xe86a92, herb:0x74b06a};
   forageDefs.forEach(function(def, idx){
     var g = new THREE.Group(); g.position.set(def.x, 0, def.z);
     ball(0.85, M.leaf, 0, 0.55, 0, g);
@@ -2105,6 +2116,9 @@ button{min-height:44px;font-family:inherit}
       renderTasks();
     }
   }
+
+  /* hand the 3D actions to the chat bridge */
+  fernActions.doPaint = doPaint; fernActions.doTidy = doTidy; fernActions.doFeedDucks = doFeedDucks; fernActions.placeDetails = placeDetails;
 
   function animate(){
     requestAnimationFrame(animate);

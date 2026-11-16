@@ -110,7 +110,7 @@ button{min-height:44px;font-family:inherit}
 </head>
 <body>
 
-<div class="stage3d" id="stage3d" aria-label="Willow's solarpunk city in 3D — drag to orbit, tap a building to send Willow there">
+<div class="stage3d" id="stage3d" aria-label="Fern's solarpunk city in 3D — drag to orbit, tap a building to send Fern there">
   <div class="bubble" id="bubble" style="left:50%;top:38%"><span class="hand" id="bubbleTitle">I'm just getting going…</span><span id="bubbleText">Give me a second to feel out my morning.</span></div>
   <div class="cam-hint">Drag to look · Tap ground, a plant, or a building to send me there</div>
   <div class="top-controls">
@@ -118,13 +118,13 @@ button{min-height:44px;font-family:inherit}
     <button class="ctl-btn" id="pauseBtn">Pause me</button>
   </div>
   <div class="side-dock" id="sideDock">
-    <button class="pop-btn" id="popBtn" aria-label="Open Willow's menu" aria-expanded="false">🌿</button>
+    <button class="pop-btn" id="popBtn" aria-label="Open Fern's menu" aria-expanded="false">🌿</button>
     <button class="dock-btn" data-panel="journal">📖 Journal</button>
-    <button class="dock-btn" data-panel="willow">🎒 Willow</button>
+    <button class="dock-btn" data-panel="fern">🎒 Fern</button>
     <button class="dock-btn" data-panel="task">✓ Task</button>
     <button class="dock-btn" data-panel="chat">💬 Chat</button>
     <div class="dock-places-label">Places</div>
-    <div class="dock-places" id="placeBar" aria-label="Places — send Willow to a place"></div>
+    <div class="dock-places" id="placeBar" aria-label="Places — send Fern to a place"></div>
   </div>
   <div class="panel" id="panel" aria-hidden="true">
     <div class="panel-head"><h2 id="panelTitle">Journal</h2><button class="panel-close" id="panelClose" aria-label="Close panel">✕</button></div>
@@ -148,7 +148,7 @@ button{min-height:44px;font-family:inherit}
         <h3>Thoughts &amp; history</h3>
         <div id="logList"></div>
       </section>
-      <section class="panel-sec" id="sec-willow">
+      <section class="panel-sec" id="sec-fern">
         <p>What I'm carrying with me out in the world:</p>
         <div class="inv-grid" id="invGrid"></div>
         <div class="forage-note" id="forageNote">🌿 <b>Foraging:</b> I wander the whole circle now — not just the paths. When I spot berries, mint, mushrooms, flowers or herbs, I stop and gather them. Tap any glowing forage patch or open ground to send me there.</div>
@@ -175,7 +175,7 @@ button{min-height:44px;font-family:inherit}
           <div class="msg her">Hey B. I'm out in my world, living my little life. What's up with you?</div>
         </div>
         <form class="chat-form" id="chatForm">
-          <input id="chatInput" type="text" placeholder="Talk to Willow…" autocomplete="off" aria-label="Message Willow"/>
+          <input id="chatInput" type="text" placeholder="Talk to Fern…" autocomplete="off" aria-label="Message Fern"/>
           <button type="submit">Send</button>
         </form>
       </section>
@@ -193,7 +193,7 @@ button{min-height:44px;font-family:inherit}
     if(!window.__sceneReady && glError){ glError.style.display='flex'; }
   });
 
-  /* ---------- Willow's brain (needs, places, words) ---------- */
+  /* ---------- Fern's brain (needs, places, words) ---------- */
   var places = {
     laptop:    {x:0,  z:-17, label:"My Laptop Perch", btn:"💻 Laptop Perch", need:"novelty", needLabel:"Something new",
       thought:"A question's been nagging me…", text:"Time to walk to my laptop and actually look it up.",
@@ -387,10 +387,10 @@ button{min-height:44px;font-family:inherit}
   var popBtn = document.getElementById('popBtn');
   var panel = document.getElementById('panel');
   var panelTitle = document.getElementById('panelTitle');
-  var panelNames = {journal:'Journal', willow:'Willow', task:'Task', chat:'Chat'};
+  var panelNames = {journal:'Journal', fern:'Fern', task:'Task', chat:'Chat'};
   function openPanel(name){
     panelTitle.textContent = panelNames[name] || 'Journal';
-    ['journal','willow','task','chat'].forEach(function(n){
+    ['journal','fern','task','chat'].forEach(function(n){
       document.getElementById('sec-' + n).classList.toggle('on', n === name);
     });
     panel.classList.add('show');
@@ -413,7 +413,7 @@ button{min-height:44px;font-family:inherit}
   }
   document.getElementById('panelClose').addEventListener('click', closePanel);
 
-  /* chat: just B and Willow talking */
+  /* chat: just B and Fern talking */
   var chatLog = document.getElementById('chatLog');
   var chatForm = document.getElementById('chatForm');
   var chatInput = document.getElementById('chatInput');
@@ -437,7 +437,7 @@ button{min-height:44px;font-family:inherit}
     for(var i=0;i<map.length;i++){ if(t.indexOf(map[i][0]) !== -1) return map[i][1]; }
     return null;
   }
-  function willowReply(raw){
+  function fernReply(raw){
     var t = ' ' + raw.toLowerCase() + ' ';
     var placeName = state.key ? places[state.key].label : null;
     var r;
@@ -507,16 +507,16 @@ button{min-height:44px;font-family:inherit}
     if(!text) return;
     chatInput.value = '';
     addMsg('me', text);
-    var typing = addMsg('her typing', 'Willow is thinking…');
+    var typing = addMsg('her typing', 'Fern is thinking…');
     setTimeout(function(){
       typing.remove();
-      addMsg('her', willowReply(text));
+      addMsg('her', fernReply(text));
     }, 700 + Math.random() * 600);
   });
   renderNeeds('Wandering my streets');
   addLog('<b>My morning started.</b> I woke up with the sun, not an alarm, and let my lowest want pick the first road.');
 
-  /* ---------- state.json: the link between Willow and her world ----------
+  /* ---------- state.json: the link between Fern and her world ----------
      The world checks state.json about every 30 seconds. On GitHub Pages that
      file sits beside index.html; in this artifact it lives under assets/.
      A fresh updated_at wins: her body follows the state she last wrote. */
@@ -564,7 +564,7 @@ button{min-height:44px;font-family:inherit}
     if(stamp === lastStateStamp) return false;
     lastStateStamp = stamp;
     stateSource = source;
-    window.__willowState = s;
+    window.__fernState = s;
     if(s.needs && typeof s.needs === 'object'){
       for(var nk in needs){ if(typeof s.needs[nk] === 'number') needs[nk] = Math.max(0, Math.min(100, s.needs[nk])); }
     }
@@ -592,7 +592,7 @@ button{min-height:44px;font-family:inherit}
     var tried = 0;
     function next(){
       if(tried >= urls.length){
-        if(!stateSource) setStateStatus('No state.json found yet — I wander on my own until Willow writes one. Checking again every 30 seconds.');
+        if(!stateSource) setStateStatus('No state.json found yet — I wander on my own until Fern writes one. Checking again every 30 seconds.');
         return;
       }
       var u = urls[tried++];
@@ -1206,12 +1206,12 @@ button{min-height:44px;font-family:inherit}
     tagPlace(g, 'workshop', 7.4);
   })();
 
-  /* ---- Willow herself ---- */
-  var willow = new THREE.Group();
+  /* ---- Fern herself ---- */
+  var fern = new THREE.Group();
   var wBody, wArmL, wArmR, wHeadGrp;
   (function(){
     var skin = mat(0xe8b48c, 0.6), dress = mat(0x2d6a4f, 0.7), hairM = mat(0x5a3a22, 0.75);
-    wBody = new THREE.Group(); willow.add(wBody);
+    wBody = new THREE.Group(); fern.add(wBody);
     var skirt = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.78, 1.15, 14), dress);
     skirt.position.y = 0.58; skirt.castShadow = true; wBody.add(skirt);
     var torso = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.44, 0.62, 14), dress);
@@ -1242,8 +1242,8 @@ button{min-height:44px;font-family:inherit}
     wArmL = arm(-1); wArmR = arm(1);
     /* notebook in her left hand */
     var nb = box(0.34, 0.46, 0.07, mat(0xc96f3f, 0.6), 0, -0.78, 0.1, wArmL); nb.rotation.x = 0.5;
-    willow.position.set(places.cottage.x + 3, 0, places.cottage.z + 2);
-    scene.add(willow);
+    fern.position.set(places.cottage.x + 3, 0, places.cottage.z + 2);
+    scene.add(fern);
   })();
 
   /* sitting spots: where she settles + which way she faces at each place */
@@ -1313,7 +1313,7 @@ button{min-height:44px;font-family:inherit}
     state.dwellUntil = Date.now() + p.dwell;
     var spot = sitSpots[key];
     state.sitting = !!spot.sit;
-    willow.rotation.y = spot.face;
+    fern.rotation.y = spot.face;
     var boosts = placeBoosts[key] || {};
     for(var bk in boosts){ needs[bk] = Math.min(100, needs[bk] + boosts[bk]); }
     markVisit(key);
@@ -1358,18 +1358,18 @@ button{min-height:44px;font-family:inherit}
           var tx, tz;
           if(state.roam){ tx = state.roam.x; tz = state.roam.z; }
           else { var p = places[state.key], spot = sitSpots[state.key]; tx = p.x + spot.dx; tz = p.z + spot.dz; }
-          var dx = tx - willow.position.x, dz = tz - willow.position.z;
+          var dx = tx - fern.position.x, dz = tz - fern.position.z;
           var dist = Math.hypot(dx, dz);
           if(dist < 0.45){ if(state.roam) arriveRoam(); else arrive(state.key); }
           else{
             var sp = 7.5 * dt;
-            willow.position.x += dx/dist * Math.min(sp, dist);
-            willow.position.z += dz/dist * Math.min(sp, dist);
+            fern.position.x += dx/dist * Math.min(sp, dist);
+            fern.position.z += dz/dist * Math.min(sp, dist);
             var targetRot = Math.atan2(dx, dz);
-            var dr = targetRot - willow.rotation.y;
+            var dr = targetRot - fern.rotation.y;
             while(dr > Math.PI) dr -= Math.PI*2;
             while(dr < -Math.PI) dr += Math.PI*2;
-            willow.rotation.y += dr * Math.min(1, dt*8);
+            fern.rotation.y += dr * Math.min(1, dt*8);
             walkPhase += dt * 9;
             wBody.position.y = Math.abs(Math.sin(walkPhase)) * 0.14;
             wBody.rotation.z = Math.sin(walkPhase) * 0.045;
@@ -1405,12 +1405,12 @@ button{min-height:44px;font-family:inherit}
 
       /* camera follow */
       if(state.follow && !state.paused){
-        controls.target.lerp(new THREE.Vector3(willow.position.x, 1.6, willow.position.z), 0.05);
+        controls.target.lerp(new THREE.Vector3(fern.position.x, 1.6, fern.position.z), 0.05);
       }
       controls.update();
 
       /* speech bubble follows her in screen space */
-      projV.set(willow.position.x, 3.6 + wBody.position.y, willow.position.z).project(camera);
+      projV.set(fern.position.x, 3.6 + wBody.position.y, fern.position.z).project(camera);
       var bw = stageEl.clientWidth, bh = stageEl.clientHeight;
       var bx = (projV.x*0.5 + 0.5) * bw, by = (-projV.y*0.5 + 0.5) * bh;
       bx = Math.max(90, Math.min(bw - 90, bx));

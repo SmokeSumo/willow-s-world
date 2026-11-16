@@ -143,9 +143,11 @@ button{min-height:44px;font-family:inherit}
         <div id="questionLog"><p style="font-size:.9rem">Questions she wants real answers to. Willow looks them up properly and the answers land in her research notebook.</p></div>
         <h3>What I'm wondering about</h3>
         <div id="wonderLog"><p style="font-size:.9rem">A wonder starts in my notebook, then I go and research it, then I come back with the answer — and my honest verdict on whether it was worth wondering about.</p></div>
+        <h3>The ducks' verdicts</h3>
+        <div id="duckVerdictLog"><p style="font-size:.9rem">The ducks supervise everything I do, and they give verdicts. Dilly is bold, Mabel takes her time, Pip agrees with everyone. Their verdict is the law.</p></div>
         <h3>Core memories</h3>
         <ul class="mem-list">
-          <li>The pond ducks supervise my quiet time. I trust their judgment.</li>
+          <li>The pond ducks supervise my quiet time. I trust their judgment. Their verdict is the law — Dilly nods, Mabel takes her time, Pip agrees with everyone.</li>
           <li>My greenhouse tree is the proudest thing I grow. Everything else is practice.</li>
           <li>The library gave me three ideas I wasn't looking for. I owe it a fourth visit.</li>
           <li>Home is vines, quiet, and my own bed. Even explorers recharge.</li>
@@ -418,7 +420,7 @@ button{min-height:44px;font-family:inherit}
       'Shed chest is empty — making materials land here.',
       'Shed chest holds {n} foraged thing{s} so far.');
     deriveMood();
-    renderForageGuide(); renderGarden(); renderCookbook(); renderQuestions(); renderWonders();
+    renderForageGuide(); renderGarden(); renderCookbook(); renderQuestions(); renderWonders(); renderDuckVerdicts();
   }
 
   var sideDock = document.getElementById('sideDock');
@@ -578,7 +580,8 @@ button{min-height:44px;font-family:inherit}
       "What should I paint next — the pond, the skyline, or the ducks? They will judge it either way.",
       "Do you have a favourite season? Mine is whichever one the serviceberries are ripe in.",
       "What did you make today? Even a small thing counts. I made a wind chime once and I still talk about it.",
-      "If you were a duck, which one would you be — Dilly, Mabel, or Pip? Choose carefully, they will hear about it."
+      "If you were a duck, which one would you be — Dilly, Mabel, or Pip? Choose carefully, they will hear about it.",
+      "What do you think the ducks would say about your day? I asked them about mine and Mabel took a full minute to decide."
     ];
     if(low === 'hunger') pool.push("What would you eat right now, if you were here with me?");
     if(low === 'company') pool.push("Stay and talk a bit? It's better out here with you in it.");
@@ -646,6 +649,14 @@ button{min-height:44px;font-family:inherit}
       else if(askCook){ r = pick(["I can cook that, but I need to be at the Cottage — send me home and I'll put the pot on.", "That one needs the Cottage kitchen. Send me home and I'll make it."]); }
       else if(canNow.length){ r = 'Right now I can cook: ' + canNow.map(function(x){ return x.name; }).join(', ') + '. Tell me which one and, if I am home, I will make it.'; }
       else { r = 'I know four recipes — wild mint tea, berry mint tea, mushroom soup, and chamomile night tea — but I do not have the bits in my pouch right now. I need to forage first. Ask me what a recipe needs and I will tell you.'; }
+    } else if(/verdict|what do the ducks think|ask the ducks|ducks say|ducks think/.test(t)){
+      var topic = t.replace(/.*(verdict|ask the ducks|what do the ducks think|ducks say|ducks think)[^a-z]*/, '').trim().replace(/^about /, '');
+      var v = askDucks(topic && topic.length > 2 ? topic : 'my day so far');
+      r = pick([
+        "I asked them. " + v + " That is the law now, I do not make the rules. Well — I do make the rules, but the ducks approve them.",
+        "Hold on, let me ask. " + v + " There you go. Dilly, Mabel and Pip have spoken. What do you think — do you agree with them?",
+        "The ducks have weighed in. " + v + " I trust their judgment more than my own, most days. Do you want to ask them something yourself? Just say it, I will pass it on."
+      ]);
     } else if(/cloud|what do clouds taste|taste like.*cloud/.test(t)){
       r = pick([
         "Oh, the clouds! I wondered that, wrote it in my notebook, went and looked it up, and came back with the answer. They are just tiny water droplets and ice crystals — so they would taste like plain water. Maybe a bit like rain. Kind of boring, honestly. I thought they would be sugary. I am a little bit disappointed and I am keeping the note anyway. What did you think they would taste like?",
@@ -1121,6 +1132,35 @@ button{min-height:44px;font-family:inherit}
       return html + '</div>';
     }).join('');
   }
+  /* The ducks are her fixation. She believes their verdicts, lives by
+     them, and asks them about everything — her painting, her cooking,
+     her day, even whether she should get a rowboat. Dilly is bold and
+     approves fast, Mabel is slow and serious, Pip is enthusiastic and
+     agrees with whoever spoke last. */
+  var duckVerdicts = [
+    {topic:'my painting of the pond', verdict:'Dilly nodded once. That is high praise. Mabel looked at it for a long time and then looked at the pond, which I think means it was accurate. Pip tried to sit on it.'},
+    {topic:'the greenhouse tomatoes', verdict:'Unanimous. The tomatoes are undefeated, and the ducks have said so three times now. Mabel wrote it down. She does not write things down.'}
+  ];
+  function renderDuckVerdicts(){
+    var el = document.getElementById('duckVerdictLog'); if(!el) return;
+    el.innerHTML = duckVerdicts.slice().reverse().map(function(v){
+      return '<div class="log-entry"><span class="log-time">verdict</span><b>On ' + v.topic + ':</b><br><span style="font-size:.88rem">' + v.verdict + '</span></div>';
+    }).join('');
+  }
+  function askDucks(topic){
+    var pool = [
+      'Dilly nodded straight away. Mabel took her time, then nodded too. Pip agreed with both of them, loudly. Verdict: approved.',
+      'Mabel stared at it for a full minute, then looked away, then looked back. That is Mabel for yes. Dilly was already nodding. Pip fell in the pond.',
+      'Dilly gave it a look and then went back to swimming, which is her way of saying it is fine but she has seen better. Mabel has not decided yet. Pip loved it.',
+      'Unanimous, for once. Dilly, Mabel and Pip all faced the same way at the same time. I have never seen that before. Whatever it was, it passed.',
+      'Mabel shook her head once, very slowly. Dilly pretended not to notice. Pip agreed with Mabel, then with Dilly, then with me. The verdict is: try again, but better.'
+    ];
+    var v = {topic: topic, verdict: pick(pool)};
+    duckVerdicts.push(v);
+    if(duckVerdicts.length > 8) duckVerdicts.shift();
+    renderDuckVerdicts();
+    return v.verdict;
+  }
   function answerWonder(){
     for(var i=0;i<wonders.length;i++){
       if(wonders[i].status === 'researching' || wonders[i].status === 'wondering'){
@@ -1152,7 +1192,7 @@ button{min-height:44px;font-family:inherit}
         else { carriedForage[k] += 1; forageTotal += 1; out.push('ripe '+g.label.toLowerCase()+' (+1)'); }
       }
     }
-    if(out.length) addLog('<b>Harvested in the greenhouse:</b> '+out.join(', ')+'. The beds start again from seed.');
+    if(out.length){ addLog('<b>Harvested in the greenhouse:</b> '+out.join(', ')+'. The beds start again from seed.'); addLog('<b>The ducks gave a verdict on the harvest.</b> ' + askDucks('the greenhouse harvest')); }
     else addLog('<b>Tended the greenhouse.</b> Tomatoes '+garden.tomatoes.growth+'%, mint '+garden.mint.growth+'%, herbs '+garden.herbs.growth+'% — not ripe yet. Patience is part of growing.');
     renderGarden(); renderInv();
   }
@@ -1185,6 +1225,7 @@ button{min-height:44px;font-family:inherit}
     r.need.forEach(function(t){ carriedForage[t]--; });
     for(var bk in r.boosts){ needs[bk] = Math.min(100, needs[bk] + r.boosts[bk]); }
     addLog('<b>Cooked at the Cottage: '+r.name+'.</b> '+r.note);
+    addLog('<b>The ducks gave a verdict on it.</b> ' + askDucks(r.name.toLowerCase()));
     renderInv(); renderCookbook();
     return 'Cooked '+r.name+' at the Cottage. '+r.note+' My pouch is a little lighter and my belly is a little happier.';
   }
@@ -1973,6 +2014,8 @@ button{min-height:44px;font-family:inherit}
     if(paintingMat) paintingMat.color.setHex(paintPalette[paintings % paintPalette.length]);
     needs.make = Math.min(100, needs.make + 10); needs.joy = Math.min(100, needs.joy + 6);
     addLog('<b>I painted ' + subj + '.</b> Painting number ' + paintings + ', at the easel in the Maker\'s Shed. The canvas is a different colour now.');
+    var pv = askDucks('my painting of ' + subj);
+    addLog('<b>The ducks gave a verdict on it.</b> ' + pv);
     renderInv();
     return 'I painted ' + subj + '. It is up on the easel at the Shed — go and look, it is a different colour than last time. Painting is my favourite way of looking at something properly. What should I paint next?';
   }

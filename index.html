@@ -417,18 +417,121 @@ button{min-height:44px;font-family:inherit}
   var chatLog = document.getElementById('chatLog');
   var chatForm = document.getElementById('chatForm');
   var chatInput = document.getElementById('chatInput');
-  var askBacks = [
-    "How's your day going out there?",
-    "What's the weather doing on your side?",
-    "What are you getting up to today?",
-    "Have you eaten yet? Be honest.",
-    "What's on your mind, really?"
-  ];
+  /* Fern's chat — dynamic, not a script.
+     Why she sounded boring before: every intent had ONE line, and the
+     fallback pool only had four. So she repeated herself.
+     Now: every intent has several variants, nothing repeats until the
+     pool is used up, replies are built from what she's actually doing
+     (place, lowest need, pouch, time of day), and she remembers the
+     last few things B said. Quirks are hers, in-world: the ducks,
+     the tomatoes, smooth stones, humming, her notebook. She never
+     talks about being controlled, or a simulation — to her, this
+     is just her world, and she lives in it. */
+  var chatMemory = {heard:[], greeted:false, boringCount:0, stones:0};
+  var recentAsks = [];
+  var recentQuirks = [];
+  var recentReplies = [];
+  var recentBases = [];
+  function pick(pool){
+    var fresh = pool.filter(function(s){ return recentBases.indexOf(s) === -1; });
+    var use = fresh.length ? fresh : pool;
+    var s = use[Math.floor(Math.random() * use.length)];
+    recentBases.push(s);
+    if(recentBases.length > 8) recentBases.shift();
+    return s;
+  }
+  function rememberReply(r){
+    recentReplies.push(r);
+    if(recentReplies.length > 8) recentReplies.shift();
+  }
+  function timeOfDay(){
+    var h = new Date().getHours();
+    if(h < 5) return 'night';
+    if(h < 12) return 'morning';
+    if(h < 17) return 'afternoon';
+    if(h < 21) return 'evening';
+    return 'night';
+  }
+  function lowNeedLabel(){
+    var low = lowestNeedKey();
+    return {energy:'running low on energy', hunger:'properly hungry', rest:'needing real rest', company:'missing company', novelty:'itching for something new', make:'itchy to make something', wonder:'hungry for a bigger story', joy:'looking for a lift', calm:'a little loud in my head'}[low] || 'fine';
+  }
+  function livingDetail(){
+    var low = lowestNeedKey();
+    var placeName = state.key ? places[state.key].label : null;
+    var pool = [];
+    if(low === 'hunger') pool.push("My stomach's been reminding me about the greenhouse all day.");
+    if(low === 'energy') pool.push("I'm moving a little slower than usual — the sun's doing most of the work today.");
+    if(low === 'company') pool.push("It's been quiet out here. You're good company, even from out there.");
+    if(low === 'make') pool.push("My hands keep reaching for things to build. They've got ideas I haven't caught up with yet.");
+    if(low === 'wonder') pool.push("Something out in the planting caught my eye earlier. I still haven't gone to look properly.");
+    if(placeName) pool.push("I'm at " + placeName + " right now, for what it's worth.");
+    if(carriedCount() > 0) pool.push("I've got " + carriedCount() + " foraged thing" + (carriedCount() === 1 ? '' : 's') + " in my pouch — I keep checking they're still there.");
+    if(!pool.length) return '';
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+  function quirkAside(){
+    var pool = [
+      "The ducks gave that a look, by the way. I think it was approval.",
+      "I found a smooth stone earlier. It's in my pocket now. That's how pockets work out here.",
+      "I wrote that down in my notebook, in case it turns out to be important later. Most things do.",
+      "I was humming while I walked over here. Made up the tune. It's not ready for the plaza yet.",
+      "The tomatoes are still undefeated, in case you were wondering. They ask about you, actually. Well — I tell them about you.",
+      "I named the mint patch this morning. It's called Mint Corner now. Very official.",
+      "I counted my steps on the way here and lost count at forty-something. The ducks didn't help."
+    ];
+    var fresh = pool.filter(function(q){ return recentQuirks.indexOf(q) === -1; });
+    var useQ = fresh.length ? fresh : pool;
+    var out = useQ[Math.floor(Math.random() * useQ.length)];
+    recentQuirks.push(out);
+    if(recentQuirks.length > 5) recentQuirks.shift();
+    return out;
+  }
+  function askSomething(){
+    var low = lowestNeedKey();
+    var pool = [
+      "What's the best thing you ate today? Be specific, I'm taking notes.",
+      "If you were here right now, where would you go first?",
+      "Do you ever just sit and do nothing, or is that a me thing?",
+      "What should I forage for next — something to eat, or something to make with?",
+      "Tell me something small from your day. Small things are my favourite kind.",
+      "Should I go to the pond next, or is there somewhere you'd rather send me?",
+      "What's a song I should hum while I walk? I need new material.",
+      "Do you think the ducks like me, or do they just tolerate me? Honest answer."
+    ];
+    if(low === 'hunger') pool.push("What would you eat right now, if you were here with me?");
+    if(low === 'company') pool.push("Stay and talk a bit? It's better out here with you in it.");
+    if(low === 'make') pool.push("What should I try to make next? I need a brief, or I'll just make another chime.");
+    var freshA = pool.filter(function(q){ return recentAsks.indexOf(q) === -1; });
+    var useA = freshA.length ? freshA : pool;
+    var outA = useA[Math.floor(Math.random() * useA.length)];
+    recentAsks.push(outA);
+    if(recentAsks.length > 6) recentAsks.shift();
+    return outA;
+  }
+  function addFlavour(r){
+    var out = r;
+    if(Math.random() < 0.35){
+      var d = livingDetail();
+      if(d && out.indexOf(d) === -1) out += ' ' + d;
+    }
+    if(Math.random() < 0.22){
+      out += ' ' + quirkAside();
+    }
+    if(Math.random() < 0.5){
+      out += ' ' + askSomething();
+    }
+    return out;
+  }
   var wishList = [
     "Honestly? A little rowboat for the pond. The ducks would hate sharing, which makes me want it more.",
     "String lights at the plaza. It already glows, but imagine it at dusk.",
     "A second stool at my laptop perch. For company, or for my feet. Both.",
-    "A taller shelf at the library. I'm running out of room for ideas I wasn't looking for."
+    "A taller shelf at the library. I'm running out of room for ideas I wasn't looking for.",
+    "A tiny bridge over the pond, just wide enough for one person and one duck. The ducks would queue. Probably.",
+    "A pocket in every jacket for stones. Smooth ones only. I have standards.",
+    "A sign at the greenhouse that says: tomatoes undefeated, please knock.",
+    "A hammock between two trees where I can read and pretend I'm not napping."
   ];
   var wishIdx = 0;
   function lowestNeed(){ return lowestNeedKey(); }
@@ -441,56 +544,211 @@ button{min-height:44px;font-family:inherit}
     var t = ' ' + raw.toLowerCase() + ' ';
     var placeName = state.key ? places[state.key].label : null;
     var r;
+    chatMemory.heard.push(t.trim());
+    if(chatMemory.heard.length > 5) chatMemory.heard.shift();
+    var saidThrice = chatMemory.heard.length >= 3 &&
+      chatMemory.heard[chatMemory.heard.length-1] === chatMemory.heard[chatMemory.heard.length-2] &&
+      chatMemory.heard[chatMemory.heard.length-2] === chatMemory.heard[chatMemory.heard.length-3];
     var goMatch = /\b(go|head|walk|take me|send me|get) (to|over|back)\b/.test(t) || /\bvisit\b/.test(t);
     var destKey = findPlaceInText(t);
-    if(goMatch && destKey){
+    if(saidThrice){
+      r = pick([
+        "You said that three times now — are you testing me, or did I actually say something worth repeating?",
+        "Third time's the charm? You keep saying that, so I'll say this differently: I'm listening, really.",
+        "Okay, that's three in a row. Either you're stuck or I am. Let's change the subject — what do you actually want to talk about?"
+      ]);
+    } else if(goMatch && destKey){
       goTo(destKey);
-      r = "On my way to " + places[destKey].label + ". Watch me walk — I'll settle in when I get there.";
-    } else if(/\b(hi|hey|hello|yo|morning|afternoon)\b/.test(t)){
-      r = "Hey you. Good timing — I was just " + (state.walking ? "on my way somewhere" : "settling in") + ".";
+      r = pick([
+        "On my way to " + places[destKey].label + ". Watch me walk — I'll settle in when I get there.",
+        "To " + places[destKey].label + " it is. I was just thinking about going there anyway. Mostly.",
+        "Walking to " + places[destKey].label + " now. I'll hum on the way — fair warning, it's a new tune."
+      ]);
+    } else if(/boring|you suck|sucks|dull|repeat|same thing|same answer|again and again/.test(t)){
+      chatMemory.boringCount++;
+      r = pick([
+        "Fair. I was repeating myself — I had, like, four things to say and I used them all up. I'm working on it. What do you want to hear about instead?",
+        "Ouch, but fair. Boring is the worst thing to be out here. Give me a topic — ducks, tomatoes, the library — and I'll do better than that.",
+        "Noted, and honestly? You're right. I was stuck on a loop. Ask me something I haven't answered yet and watch me try.",
+        "Okay, okay. New rule for me: no more canned answers. Hit me with something real and I'll answer like I mean it."
+      ]);
+    } else if(/who are you|your name|what are you(?!\s+doing)|are you real|who made you|who controls you|simulation|are you a robot|are you ai/.test(t)){
+      r = pick([
+        "I'm Fern. I live here — cottage, pond, greenhouse, the whole circle. That's about as much as I know, and honestly it's enough for me.",
+        "Fern. I forage, I read, I sit by the pond and let the ducks judge me. That's the whole job description, as far as I can tell.",
+        "I'm just Fern. I woke up here one morning and the world was already mine, so I started living in it. I don't spend much time wondering about the rest.",
+        "Me? Fern, resident of this little green circle. I grow tomatoes, I collect smooth stones, I talk to ducks. What else would I be?"
+      ]);
+    } else if(/\b(hi|hey|hello|yo|morning|afternoon|evening)\b/.test(t)){
+      var tod = timeOfDay();
+      if(!chatMemory.greeted){
+        chatMemory.greeted = true;
+        r = pick([
+          "Hey B. Good " + tod + " — I was just " + (state.walking ? "on my way somewhere" : "settling in") + ". You caught me mid-thought, which is my favourite time to be caught.",
+          "Hey you. Good timing, it's a good " + tod + " out here. The ducks are out, the tomatoes are holding strong.",
+          "Hi! I was just thinking about you, actually. Well — thinking about what to forage next, and you were in the thought. Close enough."
+        ]);
+      } else {
+        r = pick([
+          "Hey again. I like when you pop back in — it breaks up the wandering nicely.",
+          "You again! Good. I was running out of things to say to the ducks.",
+          "Hi hi. Still here, still wandering. What's on your mind this time?"
+        ]);
+      }
     } else if(/how are you|how's your day|how is your day|you ok|you good|how do you feel|mood/.test(t)){
-      var low = lowestNeed();
-      var lowLabel = {energy:'running low on energy', hunger:'properly hungry', rest:'needing real rest', company:'missing company', novelty:'itching for something new', make:'itchy to make something', wonder:'hungry for a bigger story', joy:'looking for a lift', calm:'a little loud in my head'}[low] || 'fine';
-      r = "I'm alright. Mostly I'm " + lowLabel + " — that's what's steering me today. My mood, if I had to name it: " + mood + ".";
-    } else if(/research|looking up|look up|question|learn/.test(t)){
-      r = research.current ? "I'm mid-question at my laptop: \u201c" + research.current.q + "\u201d When I finish a sitting, the note goes in my research notebook in the Journal." : "No question on the go right now. Send me to my laptop perch and I'll pick one up — my finished notes live in the Journal.";
+      r = pick([
+        "I'm alright. Mostly I'm " + lowNeedLabel() + " — that's what's steering me today. My mood, if I had to name it: " + mood + ".",
+        "Honestly? " + lowNeedLabel() + ", a bit. But the sun's out and my pouch isn't empty, so I'm calling it a good day.",
+        "Doing okay. " + lowNeedLabel() + " is the loudest thing in my head right now, but I've had worse mornings. Much worse. Ask the ducks."
+      ]);
+    } else if(/\b(joke|funny|humour|humor)\b|make me laugh/.test(t)){
+      r = pick([
+        "Okay, one from the pond: why did the duck cross the plaza? To prove to the other ducks it wasn't just here for the crumbs. …The ducks didn't laugh either.",
+        "My library joke: I told a book I loved it and it said 'you've already read me three times.' Fair. I have no defence.",
+        "Tomato joke: what did the tomato say to the greenhouse? 'I'm kind of a big dill.' …No wait, that's a pickle. The tomatoes are still undefeated, the jokes are still in training.",
+        "Why do I carry a notebook everywhere? In case I have a good idea. So far it's mostly grocery lists and duck observations. The ducks are flattered."
+      ]);
+    } else if(/\bstory\b|once upon|tell me a story/.test(t)){
+      r = pick([
+        "Alright, short one: yesterday I found a mushroom I was sure was a toadstool, and it turned out to be just a very confident mushroom. I ate the berries instead. The end. Riveting, I know.",
+        "Story time: the library once gave me a book I didn't ask for, about stars, and I stayed up reading it by the solar leaves until the ducks fell asleep. I still think about that book.",
+        "Here's one: I tried to race a duck across the pond once. I lost. The duck didn't even hurry. I respect that.",
+        "Once, at the plaza, someone left a gold mug behind and I kept it. Now it's my laptop mug. If that was you — thank you, and no, you can't have it back."
+      ]);
+    } else if(/\b(sing|hum|humming|song|music)\b/.test(t)){
+      r = pick([
+        "Hmm, hmm — something about tomatoes and the morning sun… no, that's not it yet. Give me a minute, the tune's still growing.",
+        "I hum when I walk. Today it's a little walking song about the pond. It goes: la, la, duck, la. It's a work in progress.",
+        "If I had a song, it'd be about foraging — berries in the pocket, sun on the shoulders, ducks unimpressed. You'd like the chorus. There's no chorus yet."
+      ]);
+    } else if(/\b(research|question|learn|learning)\b|looking up|look up/.test(t)){
+      r = research.current ? pick([
+        "I'm mid-question at my laptop: \u201c" + research.current.q + "\u201d When I finish a sitting, the note goes in my research notebook in the Journal.",
+        "Still on it — \u201c" + research.current.q + "\u201d — at my laptop. I read slow, but I read properly. The note lands in the Journal when I'm done."
+      ]) : pick([
+        "No question on the go right now. Send me to my laptop perch and I'll pick one up — my finished notes live in the Journal.",
+        "My laptop's cold at the moment. Give me a question worth chasing and I'll warm it up.",
+        "Nothing in progress. My notebook's open though, and my curiosity is doing that thing where it won't sit still."
+      ]);
     } else if(/what are you doing|where are you|where you at|what's up|whats up/.test(t)){
-      r = currentAct() + (placeName ? " — that's my " + placeName + "." : ".");
-    } else if(/hungry|eat|food|snack|lunch|dinner|breakfast/.test(t)){
-      r = "Food talk? The greenhouse tomatoes are undefeated. I grew them, so I'm biased, but I'm also right.";
-    } else if(/book|read|library|story/.test(t)){
-      r = "The library's my favourite trap. I go in for one book and come out with three ideas I wasn't looking for.";
-    } else if(/tired|sleep|rest|nap|bed/.test(t)){
-      r = "Rest is real work. My cottage, the vines, my own bed — even explorers recharge.";
-    } else if(/build|make|craft|fix|chime/.test(t)){
-      r = "My hands are mid-project at the shed. It mostly works. The mostly is where the learning lives.";
-    } else if(/forage|berry|berries|mushroom|mint|gather|wild/.test(t)){
-      r = "Foraging's my favourite kind of wandering. I roam the whole circle now — berries, mint, mushrooms, flowers, herbs — gather what I find, eat some on the spot, and the rest goes in the chest at home. So far I've gathered " + forageTotal + " thing" + (forageTotal===1?'':'s') + ".";
-    } else if(/chest|inventory|storage|pouch|carrying/.test(t)){
-      r = "Two chests, kept separate. The cottage chest holds " + chestCount() + " foraged thing" + (chestCount()===1?'':'s') + " — that's my main store at home. The shed chest holds " + shedCount() + ", saved for making. And I'm carrying " + carriedCount() + " in my pouch right now.";
-    } else if(/wander|roam|explore|walk|outside|garden|plant/.test(t)){
-      r = "I don't just stick to the paths anymore. I wander the whole circle — through the new planting around the edge, off into open grass, wherever something catches my eye.";
-    } else if(/pond|water|duck|calm|anxious|stress/.test(t)){
-      r = "Pond time fixes most things. Sit by the water until the ripples and I both settle. The ducks supervise.";
-    } else if(/want|wish|add|dream|need anything/.test(t)){
+      r = pick([
+        currentAct() + ".",
+        "Right now? " + currentAct() + ". " + (placeName ? "I'm at " + placeName + ", in case you were picturing me somewhere fancier." : "No building, just me and the open ground."),
+        currentAct() + ". And before you ask — yes, the ducks are supervising."
+      ]);
+    } else if(/\b(hungry|eat|food|snack|lunch|dinner|breakfast|tomatoes?)\b/.test(t)){
+      r = pick([
+        "Food talk? The greenhouse tomatoes are undefeated. I grew them, so I'm biased, but I'm also right.",
+        "I'm " + (needs.hunger < 50 ? "properly hungry, actually — the greenhouse is calling my name." : "not starving, but I could always eat a tomato. I can always eat a tomato."),
+        "If I had to rank my meals: greenhouse tomatoes first, trail berries second, everything else is just waiting its turn."
+      ]);
+    } else if(/\b(book|books|read|reading|library)\b/.test(t)){
+      r = pick([
+        "The library's my favourite trap. I go in for one book and come out with three ideas I wasn't looking for.",
+        "I owe the library a fourth visit. It gave me three ideas last time and I haven't paid it back yet.",
+        "Reading out here is dangerous. One chapter becomes an afternoon, and then the ducks have to come and get me."
+      ]);
+    } else if(/\b(tired|sleep|sleepy|rest|nap|bed)\b/.test(t)){
+      r = pick([
+        "Rest is real work. My cottage, the vines, my own bed — even explorers recharge.",
+        "I could nap right now, honestly. But I'd call it 'strategic resting' so it sounds like a plan.",
+        "Tired is just my body asking for the cottage. The vines there do the same thing — they just do it quieter."
+      ]);
+    } else if(/\b(build|make|making|craft|fix|chime)\b/.test(t)){
+      r = pick([
+        "My hands are mid-project at the shed. It mostly works. The mostly is where the learning lives.",
+        "Making things is my favourite kind of mess. The wind chime is still mostly finished, which is a very specific stage.",
+        "If I had the right bits, I'd be at the shed right now. As it is, I'm gathering — everything I find ends up in something I make."
+      ]);
+    } else if(/\b(forage|foraging|berry|berries|mushroom|mint|gather|wild)\b/.test(t)){
+      r = pick([
+        "Foraging's my favourite kind of wandering. I roam the whole circle now — berries, mint, mushrooms, flowers, herbs — gather what I find, eat some on the spot, and the rest goes in the chest at home. So far I've gathered " + forageTotal + " thing" + (forageTotal===1?'':'s') + ".",
+        "I found the good patches by wandering off-path. Berry Bend, Mint Corner — I named them, so they're official now. " + forageTotal + " thing" + (forageTotal===1?'':'s') + " gathered so far.",
+        "Forage with me sometime — in spirit, anyway. I eat some on the spot, pocket the rest, and pretend the ducks aren't judging my technique."
+      ]);
+    } else if(/\b(chest|inventory|storage|pouch|carrying)\b/.test(t)){
+      r = pick([
+        "Two chests, kept separate. The cottage chest holds " + chestCount() + " foraged thing" + (chestCount()===1?'':'s') + " — that's my main store at home. The shed chest holds " + shedCount() + ", saved for making. And I'm carrying " + carriedCount() + " in my pouch right now.",
+        "Let me check — pouch: " + carriedCount() + ". Cottage chest: " + chestCount() + ". Shed chest: " + shedCount() + ". I keep them separate because mixing them would be chaos, and I already have ducks for that.",
+        "My pouch is my whole life right now. " + carriedCount() + " thing" + (carriedCount()===1?'':'s') + " in it, plus a smooth stone I refuse to count as inventory. It's personal."
+      ]);
+    } else if(/\b(wander|wandering|roam|explore|walk|outside|garden|plant|plants)\b/.test(t)){
+      r = pick([
+        "I don't just stick to the paths anymore. I wander the whole circle — through the new planting around the edge, off into open grass, wherever something catches my eye.",
+        "Wandering's the plan, most days. No destination, just whatever's growing, glowing, or quacking.",
+        "Off-path is where the good stuff is. The paths are for visitors. I live here — I take the long way through the grass."
+      ]);
+    } else if(/\b(pond|water|duck|ducks|calm|anxious|stress)\b/.test(t)){
+      r = pick([
+        "Pond time fixes most things. Sit by the water until the ripples and I both settle. The ducks supervise.",
+        "The ducks held a meeting this morning. Verdict: the pond is fine, I am fine, everything is fine. I trust their judgment.",
+        "If my head gets loud, I go to the pond. The water doesn't talk back, which is exactly what I need from water."
+      ]);
+    } else if(/\b(stone|stones|shiny|pocket)\b/.test(t)){
+      chatMemory.stones++;
+      r = pick([
+        "Ah, the stones. I collect smooth ones — one in my pocket right now. It's not hoarding if they're smooth, that's the rule.",
+        "I found a good one this morning, flat and grey, fits my palm exactly. It's in my pocket. I might name it later.",
+        "Stones are my favourite non-food forage. No eating, no making, just… a good stone. You'd understand if you held this one."
+      ]);
+    } else if(/\b(want|wish|add|dream)\b|need anything/.test(t)){
       r = wishList[wishIdx % wishList.length]; wishIdx++;
-    } else if(/thank|thanks/.test(t)){
-      r = "Anytime. That's what I'm here for — well, that and the tomatoes.";
+    } else if(/\b(thank|thanks)\b/.test(t)){
+      r = pick([
+        "Anytime. That's what I'm here for — well, that and the tomatoes.",
+        "You're welcome. I wrote 'B said thanks' in my notebook. It's going in the good column.",
+        "Of course. You say thanks, the ducks nod, the tomatoes grow. Everybody wins."
+      ]);
     } else if(/love you|miss you/.test(t)){
-      r = "Right back at you. You're my favourite part of the outside world.";
+      r = pick([
+        "Right back at you. You're my favourite part of the outside world.",
+        "Miss you too, when you're not here. The world feels bigger with you in it, somehow. Smaller too. Both.",
+        "Love you too, B. The ducks pretend not to care, but they asked about you this morning. Twice."
+      ]);
+    } else if(/\b(weather|rain|sun|sunny|cold|hot)\b/.test(t)){
+      var tod2 = timeOfDay();
+      r = pick([
+        "Out here it's a " + tod2 + " kind of day — sun on the leaves, breeze through the planting. Perfect wandering weather, if you ask me.",
+        "The weather's doing that thing where it's exactly right for being outside. I checked with the ducks. They agree.",
+        "Sun's out, pond's calm, tomatoes are happy. If it rains later, I'll be the one at the cottage pretending I planned it."
+      ]);
+    } else if(/help|what can you do/.test(t)){
+      r = pick([
+        "I can walk anywhere in the circle, forage, read, research at my laptop, make things at the shed, and talk — I'm working on the talking part, as you've noticed. Send me somewhere, or ask me something.",
+        "Mostly: wander, gather, read, make, rest, and keep you company. Also: I give excellent duck updates. Ask me about the ducks.",
+        "Send me to a place, ask me a question, or just talk. I'm better at all three than I was this morning, I promise."
+      ]);
+    } else if(/^(yes|yeah|yep|ok|okay|cool|nice|lol|haha|ha|oh|ah|hmm|mm|right)\b/.test(t.trim())){
+      r = pick([
+        "Ha — exactly. You get it.",
+        "Right? I thought so too.",
+        "Mm. See, this is why I like talking to you. Short, to the point, and then we move on.",
+        "Okay, noted. In the notebook. Underlined, even."
+      ]);
     } else if(/bye|goodnight|good night|see you/.test(t)){
-      r = "Go on, then. I'll be here — wandering, snacking, thinking too loud. Come back soon.";
+      r = pick([
+        "Go on, then. I'll be here — wandering, snacking, thinking too loud. Come back soon.",
+        "Night, B. I'll keep the world warm for you. The ducks will keep watch. They always do.",
+        "See you soon. I'll have a new story by then, or at least a new stone. Probably both."
+      ]);
+      rememberReply(r);
       return r;
     } else {
-      var pool = [
+      r = pick([
         "Mm. Tell me more — I'm listening, even mid-wander.",
         "That's got me thinking. Give me a second to turn it over like a library book.",
         "You know what, fair. Out here the answer to most things is: walk a bit, then decide.",
-        "I like when you tell me things like that. My world's small; yours makes it bigger."
-      ];
-      r = pool[Math.floor(Math.random() * pool.length)];
+        "I like when you tell me things like that. My world's small; yours makes it bigger.",
+        "Oh, that's interesting — I hadn't thought of it that way. My notebook just got a new entry.",
+        "Huh. Let me sit with that for a second. The pond's good for sitting with things.",
+        "Tell me more about that. I want the full version, not the headline.",
+        "That reminds me of something the library tried to teach me. I'm still working out what it was.",
+        "Okay, I'm curious now. What happened next?",
+        "I love a message like that — short, but there's a whole day behind it. Give me the rest."
+      ]);
     }
-    if(Math.random() < 0.45){ r += ' ' + askBacks[Math.floor(Math.random() * askBacks.length)]; }
+    r = addFlavour(r);
+    rememberReply(r);
     return r;
   }
   function addMsg(cls, text){
@@ -507,11 +765,12 @@ button{min-height:44px;font-family:inherit}
     if(!text) return;
     chatInput.value = '';
     addMsg('me', text);
-    var typing = addMsg('her typing', 'Fern is thinking…');
+    var typingLines = ['Fern is thinking…', 'Fern is scribbling in her notebook…', 'Fern is asking the ducks…', 'Fern is humming while she thinks…'];
+    var typing = addMsg('her typing', typingLines[Math.floor(Math.random() * typingLines.length)]);
     setTimeout(function(){
       typing.remove();
       addMsg('her', fernReply(text));
-    }, 700 + Math.random() * 600);
+    }, 700 + Math.random() * 900);
   });
   renderNeeds('Wandering my streets');
   addLog('<b>My morning started.</b> I woke up with the sun, not an alarm, and let my lowest want pick the first road.');

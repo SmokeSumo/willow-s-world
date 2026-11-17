@@ -1,1 +1,31 @@
-{"activity": "Painting at the Maker's Shed easel, a picture of the blueberries she picked", "chest_cottage": [], "chest_shed": [], "destination": null, "diary_last": "My hands were itching to make something, so I came back to the shed and started painting the blueberries I picked \u2014 deep blue-purple, still warm in my mind. The ducks will have opinions, I'm sure.", "mood": "content", "needs": {"calm": 66, "company": 48, "energy": 63, "hunger": 45, "joy": 61, "make": 52, "novelty": 53, "rest": 63, "wonder": 62}, "place": "Maker's Shed", "position": {"x": 30, "z": 13}, "pouch": [{"count": 1, "item": "berries"}], "updated_at": "2026-11-16T23:35:51-05:00"}
+{
+  "activity": "Wandering off-path, exploring",
+  "chest_cottage": [],
+  "chest_shed": [],
+  "destination": null,
+  "diary_last": "I wandered off the paths into open ground \u2014 no building in mind, just looking.",
+  "mood": "properly hungry",
+  "needs": {
+    "energy": 60,
+    "hunger": 42,
+    "rest": 61,
+    "company": 46,
+    "novelty": 51,
+    "make": 50,
+    "wonder": 60,
+    "joy": 59,
+    "calm": 64
+  },
+  "place": "Maker's Shed",
+  "position": {
+    "x": 30,
+    "z": 13
+  },
+  "pouch": [
+    {
+      "item": "berries",
+      "count": 1
+    }
+  ],
+  "updated_at": "2026-11-17T04:41:35.821Z"
+}

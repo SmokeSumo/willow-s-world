@@ -527,7 +527,7 @@ button{min-height:44px;font-family:inherit}
      the tomatoes, smooth stones, humming, her notebook. She never
      talks about being controlled, or a simulation — to her, this
      is just her world, and she lives in it. */
-  var chatMemory = {heard:[], greeted:false, boringCount:0, stones:0};
+  var chatMemory = {heard:[], greeted:false, boringCount:0, stones:0, lastTopic:null};
   var recentAsks = [];
   var recentQuirks = [];
   var recentReplies = [];
@@ -590,19 +590,26 @@ button{min-height:44px;font-family:inherit}
   /* Curiosity, not "tell me more". Fern asks because she actually wants to
      know — about B's day, his food, his music, his plants, and the world
      she's living in. She also remembers what he tells her. */
-  var aboutB = {food:null, music:null, garden:null, day:null};
+  var aboutB = {food:null, music:null, garden:null, day:null, favs:{}};
   function rememberAboutB(t){
     var m;
     if((m = t.match(/ate (?:a |an |some )?([a-z]+(?: (?!for|with|today|at|and|then|after|before|while)[a-z]+){0,2})/))) aboutB.food = m[1].trim();
     if((m = t.match(/(?:listening to|song|music|hip hop|rap|playing) ([a-z0-9 ]{3,25})/))) aboutB.music = m[1].trim();
     if((m = t.match(/(?:grew|growing|planted|my (?:tomato|mint|basil|pepper|garden))([a-z ]{0,20})/))) aboutB.garden = t.trim().slice(0,40);
     if((m = t.match(/my day was ([a-z ]{3,30})/))) aboutB.day = m[1].trim();
+    if((m = t.match(/my favou?rite (colou?r|food|duck|song|season|place|flower|book|movie|animal) is ([a-z0-9 ]{2,25})/))){
+      var fk = m[1].replace('color', 'colour');
+      aboutB.favs[fk] = m[2].trim();
+    }
   }
   function recallAboutB(){
     if(aboutB.food) return "You told me you ate " + aboutB.food + " once. I'm still thinking about that.";
     if(aboutB.music) return "You mentioned " + aboutB.music + " — I hum it wrong on purpose now, so it stays mine.";
     if(aboutB.garden) return "You told me about your plants once. I wrote it down. My notebook has a whole page for your world now.";
     if(aboutB.day) return "You told me your day was " + aboutB.day + ". I wrote that down too — your days are my favourite thing to collect.";
+    var fk0 = null;
+    for(var fk in aboutB.favs){ fk0 = fk; break; }
+    if(fk0) return "You told me your favourite " + fk0 + " is " + aboutB.favs[fk0] + ". I wrote that down — your favourites go on the good page.";
     return '';
   }
   var curiosityPool = [
@@ -788,9 +795,29 @@ button{min-height:44px;font-family:inherit}
     if(!key) return null;
     return pick(opinions[key]);
   }
+  /* What are we talking about, so "what about Mabel?" and "why?" have
+     an answer. Updated on every message; follow-ups read it. */
+  function detectTopic(t){
+    if(/favourite|favorite/.test(t)){
+      if(/colou?r/.test(t)) return 'color';
+      if(/duck/.test(t)) return 'duck';
+      if(/food|eat|meal/.test(t)) return 'favourite-food';
+      return 'favourite';
+    }
+    if(/duck|dilly|mabel|pip/.test(t)) return 'duck';
+    if(/laptop|computer/.test(t)) return 'laptop';
+    if(/rowboat|boat/.test(t)) return 'rowboat';
+    if(/city|skyline|tower/.test(t)) return 'city';
+    if(/tomato/.test(t)) return 'tomato';
+    if(/pond/.test(t)) return 'pond';
+    if(/library|book/.test(t)) return 'library';
+    return null;
+  }
   function fernReply(raw){
     var t = ' ' + raw.toLowerCase() + ' ';
     rememberAboutB(t);
+    var dt = detectTopic(t);
+    if(dt) chatMemory.lastTopic = dt;
     var placeName = state.key ? places[state.key].label : null;
     var r;
     chatMemory.heard.push(t.trim());
@@ -806,6 +833,41 @@ button{min-height:44px;font-family:inherit}
         "Third time's the charm? You keep saying that, so I'll say this differently: I'm listening, really.",
         "Okay, that's three in a row. Either you're stuck or I am. Let's change the subject — what do you actually want to talk about?"
       ]);
+    } else if(/what'?s my favou?rite|my favou?rite (colou?r|food|duck|song|season|place|flower|book|movie|animal) is/.test(t)){
+      var mm = t.match(/my favou?rite (colou?r|food|duck|song|season|place|flower|book|movie|animal) is ([a-z0-9 ]{2,25})/);
+      if(mm && /what'?s my/.test(t) === false){
+        var mk = mm[1].replace('color', 'colour');
+        r = pick([
+          "Noted — " + mm[2].trim() + ". That's going in my notebook, on the good page. Your favourites live there now.",
+          "Got it. Your favourite " + mk + " is " + mm[2].trim() + ". I keep all your favourites — ask me yours sometime and I'll tell you."
+        ]);
+      } else {
+        var myKey = null;
+        if(/colou?r/.test(t)) myKey = 'colour';
+        else if(/food|eat|meal|drink|tea/.test(t)) myKey = 'food';
+        else if(/duck/.test(t)) myKey = 'duck';
+        else if(/song|music/.test(t)) myKey = 'song';
+        else if(/season/.test(t)) myKey = 'season';
+        else if(/place|spot/.test(t)) myKey = 'place';
+        else if(/flower/.test(t)) myKey = 'flower';
+        else if(/book/.test(t)) myKey = 'book';
+        if(myKey && aboutB.favs[myKey]) r = "Yours is " + aboutB.favs[myKey] + " — you told me, and I wrote it in my notebook. Good taste, by the way.";
+        else if(myKey) r = "You haven't told me your favourite " + myKey + " yet. Tell me and I'll keep it — I keep all your favourites on the good page.";
+        else r = "You haven't told me a favourite yet — or at least, not one I wrote down. Give me one and I'll keep it in my notebook.";
+      }
+    } else if(/^(what about|and what about|but what about|more about)/.test(t.trim()) || /^(why|tell me more|and then|what else|how come|really|huh|oh really|oh yeah)\??\s*$/.test(t.trim())){
+      var lt = chatMemory.lastTopic;
+      var namedDuck = /mabel/.test(t) ? 'Mabel' : /dilly/.test(t) ? 'Dilly' : /pip/.test(t) ? 'Pip' : null;
+      if(namedDuck === 'Mabel') r = "Mabel. She takes her time and she never rushes a verdict. That's why she's my favourite — and why the ducks let her decide.";
+      else if(namedDuck === 'Dilly') r = "Dilly's the bold one — white, fast, first to everything. She approves quickly and regrets nothing.";
+      else if(namedDuck === 'Pip') r = "Pip's the small one. He follows everyone and tries so hard. The ducks pretend he's not the baby. He is the baby.";
+      else if(lt === 'laptop') r = "Still the same perch, same notebook, same slow reading. The laptop's where the real thinking happens — give me a question and I'll take it there.";
+      else if(lt === 'color') r = "Still green. The deep green of the ferns by the pond. It hasn't changed since you asked, and it won't.";
+      else if(lt === 'duck') r = "The ducks, still. Dilly, Mabel and Pip, doing slow circles and judging me. Mabel's still my favourite, don't tell Dilly.";
+      else if(lt === 'rowboat') r = "The rowboat, yes. Still the dream. Me, the pond, the ducks filing a formal complaint.";
+      else if(lt === 'city') r = "The city — I love it and I'm a little bit scared of it. The towers are beautiful, especially at dusk, but they're so tall and so quiet.";
+      else if(lt && lt.indexOf('favourite') === 0) r = "Still my favourite. I don't change favourites by the hour, whatever I told you before. Ask me about a different one and I'll rank that too.";
+      else r = "Say more — what part? I was following you, I just need the next bit.";
     } else if(/\bcook\b|\brecipe\b|\bwhat can (you|i) cook\b|\bmake (me )?(tea|soup|food|dinner)\b/.test(t)){
       var canNow = cookBook.filter(function(r){ return r.need.every(function(n){ return carriedForage[n] > 0; }); });
       var askCook = /mint tea|berry.*tea|mushroom soup|chamomile/.test(t) ? (t.indexOf('mushroom')>=0 ? 'mushroomsoup' : t.indexOf('chamomile')>=0 ? 'chamomiletea' : t.indexOf('berry')>=0 ? 'berrytea' : 'minttea') : null;
@@ -1197,7 +1259,11 @@ button{min-height:44px;font-family:inherit}
     }
     if(typeof s.mood === 'string' && s.mood) mood = s.mood;
     if(s.about_b && typeof s.about_b === 'object'){
-      for(var abk in aboutB){ if(typeof s.about_b[abk] === 'string' && s.about_b[abk]) aboutB[abk] = s.about_b[abk]; }
+      for(var abk in aboutB){
+        if(abk === 'favs' && s.about_b.favs && typeof s.about_b.favs === 'object'){
+          for(var fk2 in s.about_b.favs){ if(typeof s.about_b.favs[fk2] === 'string' && s.about_b.favs[fk2]) aboutB.favs[fk2] = s.about_b.favs[fk2]; }
+        } else if(typeof s.about_b[abk] === 'string' && s.about_b[abk]) aboutB[abk] = s.about_b[abk];
+      }
     }
     applyItemList(s.pouch, carriedForage);
     applyItemList(s.chest_cottage, chestCottage);

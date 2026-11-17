@@ -132,6 +132,7 @@ button{min-height:44px;font-family:inherit}
     <button class="dock-btn" data-panel="fern">🎒 Fern</button>
     <button class="dock-btn" data-panel="task">✓ Task</button>
     <button class="dock-btn" data-panel="chat">💬 Chat</button>
+    <button class="dock-btn" id="saveVisitBtn">💾 Save visit</button>
     <div class="dock-places-label">Places</div>
     <div class="dock-places" id="placeBar" aria-label="Places — send Fern to a place"></div>
   </div>
@@ -1009,6 +1010,7 @@ button{min-height:44px;font-family:inherit}
     if(!text) return;
     chatInput.value = '';
     addMsg('me', text);
+    visitDirty = true;
     var typingLines = ['Fern is thinking…', 'Fern is scribbling in her notebook…', 'Fern is asking the ducks…', 'Fern is humming while she thinks…'];
     var typing = addMsg('her typing', typingLines[Math.floor(Math.random() * typingLines.length)]);
     setTimeout(function(){
@@ -1109,6 +1111,123 @@ button{min-height:44px;font-family:inherit}
   pollState();
   setInterval(pollState, 30000);
   document.addEventListener('visibilitychange', function(){ if(!document.hidden) pollState(); });
+
+  /* ---------- Saving a visit: hand it to Willow ----------
+     The page is static — it can read state.json but cannot write it, and a
+     GitHub token must never live in this public file. So there is no server
+     and no automatic save. The "Save visit" button copies a visit summary
+     (state + what B did + the chat) to the clipboard and shows it on
+     screen, and B pastes it to Willow in chat. Willow checks the save is
+     newer than the world's current state, then commits it to GitHub and
+     logs the visit — the same way her ten-minute ticks save. Closing the
+     tab without tapping Save loses the visit, the same as before. */
+  var visitStartedAt = new Date().toISOString();
+  var visitDirty = false;
+  var visitActions = [];
+  var visitChatStart = 0;
+  try { visitChatStart = chatLog.querySelectorAll('.msg').length; } catch (e) { visitChatStart = 0; }
+  function noteVisitAction(str){
+    visitDirty = true;
+    visitActions.push(str);
+    if(visitActions.length > 20) visitActions.shift();
+  }
+  function itemListFromStore(store){
+    var out = [];
+    for(var k in store){ if(store[k] > 0) out.push({item: k, count: store[k]}); }
+    return out;
+  }
+  function placeNameForSave(){
+    if(state.key && places[state.key]) {
+      var label = places[state.key].label;
+      var plain = {'My Laptop Perch':'Laptop Perch','Canopy Library':'Library','My Cottage':'Cottage','Solar Plaza':'Plaza','Mirror Pond':'Pond','Greenhouse Domes':'Greenhouse',"Maker's Shed":'Maker\'s Shed'};
+      return plain[label] || label;
+    }
+    if(window.__fernState && window.__fernState.place) return window.__fernState.place;
+    return 'Wandering';
+  }
+  function collectVisitState(){
+    var diary = '';
+    if(logEntries && logEntries.length){
+      diary = String(logEntries[0].html || '').replace(/<[^>]*>/g, '').trim();
+    }
+    var rounded = {};
+    for(var nk in needs){ rounded[nk] = Math.round(needs[nk]); }
+    return {
+      activity: currentAct(),
+      chest_cottage: itemListFromStore(chestCottage),
+      chest_shed: itemListFromStore(chestShed),
+      destination: null,
+      diary_last: diary || 'A quiet visit — B came by, and we just watched the world for a while.',
+      mood: (typeof mood === 'string' && mood) ? mood : deriveMood(),
+      needs: rounded,
+      place: placeNameForSave(),
+      position: null,
+      pouch: itemListFromStore(carriedForage),
+      updated_at: new Date().toISOString()
+    };
+  }
+  function collectVisitChat(){
+    var out = [];
+    try {
+      var msgs = chatLog.querySelectorAll('.msg');
+      for(var i = visitChatStart; i < msgs.length; i++){
+        if(msgs[i].classList.contains('typing')) continue;
+        var txt = (msgs[i].textContent || '').trim();
+        if(!txt) continue;
+        out.push({from: msgs[i].classList.contains('me') ? 'B' : 'Fern', text: txt});
+      }
+    } catch (e) {}
+    return out.slice(-20);
+  }
+  function setSaveBtn(txt){ var b = document.getElementById('saveVisitBtn'); if(b) b.textContent = txt; }
+  function visitSummaryText(){
+    var payload = {state: collectVisitState(), visit: {started_at: visitStartedAt, ended_at: new Date().toISOString(), chat: collectVisitChat(), actions: visitActions.slice()}};
+    return 'FERN VISIT SAVE — paste this to Willow:\n' + JSON.stringify(payload, null, 2);
+  }
+  function showVisitPanel(text){
+    var p = document.getElementById('visitSavePanel');
+    if(!p){
+      p = document.createElement('div');
+      p.id = 'visitSavePanel';
+      p.style.cssText = 'position:fixed;left:8px;right:8px;bottom:8px;max-height:55vh;overflow:auto;background:#10201a;color:#e8f5ee;border:1px solid #3a6b52;border-radius:10px;padding:12px;z-index:9999;font-size:12px;';
+      p.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;"><b>Your visit, ready to save</b><button id="visitSaveClose" style="background:#3a6b52;color:#fff;border:0;border-radius:6px;padding:4px 10px;">Close</button></div><p style="margin:8px 0;">Copy this and paste it to Willow in chat — she will save it to the world. (If the copy already worked, just paste.)</p><pre id="visitSaveText" style="white-space:pre-wrap;word-break:break-word;margin:0;"></pre>';
+      document.body.appendChild(p);
+      document.getElementById('visitSaveClose').addEventListener('click', function(){ p.style.display = 'none'; });
+    }
+    var pre = document.getElementById('visitSaveText');
+    if(pre) pre.textContent = text;
+    p.style.display = 'block';
+  }
+  function copyTextFallback(text){
+    var ok = false;
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+    } catch (e) { ok = false; }
+    return ok;
+  }
+  function saveVisit(){
+    if(!visitDirty){ setSaveBtn('Nothing new to save yet'); setTimeout(function(){ setSaveBtn('💾 Save visit'); }, 3000); return; }
+    var text = visitSummaryText();
+    showVisitPanel(text);
+    setSaveBtn('Copying…');
+    function done(copied){
+      visitDirty = false;
+      setSaveBtn(copied ? 'Copied ✓ — paste it to Willow' : 'Shown below — copy it from there');
+      setTimeout(function(){ setSaveBtn('💾 Save visit'); }, 5000);
+    }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){ done(true); }, function(){ done(copyTextFallback(text)); });
+    } else {
+      done(copyTextFallback(text));
+    }
+  }
+  document.getElementById('saveVisitBtn').addEventListener('click', function(){ saveVisit(); });
 
   /* Research at the laptop is a real sitting: one clear question, then a note
      in her own words goes into the research notebook in the Journal. */
@@ -1300,6 +1419,7 @@ button{min-height:44px;font-family:inherit}
     r.need.forEach(function(t){ carriedForage[t]--; });
     for(var bk in r.boosts){ needs[bk] = Math.min(100, needs[bk] + r.boosts[bk]); }
     addLog('<b>Cooked at the Cottage: '+r.name+'.</b> '+r.note);
+    noteVisitAction('cooked ' + r.name + ' at the Cottage');
     addLog('<b>The ducks gave a verdict on it.</b> ' + askDucks(r.name.toLowerCase()));
     renderInv(); renderCookbook();
     return 'Cooked '+r.name+' at the Cottage. '+r.note+' My pouch is a little lighter and my belly is a little happier.';
@@ -1443,6 +1563,7 @@ button{min-height:44px;font-family:inherit}
     bText.textContent = node.species+': '+sp.note+' (+'+qty+' in my pouch)';
     setAct('Foraging — gathering '+node.species);
     addLog('<b>I foraged '+node.species+' at '+ (node.name||'a patch') +'.</b> '+sp.note+' For '+sp.use+'. Pouch now holds '+carriedCount()+'.');
+    noteVisitAction('foraged ' + node.species + ' at ' + (node.name || 'a patch'));
     renderForageGuide();
     renderNeeds(currentAct()); renderTasks();
   }
@@ -1470,6 +1591,7 @@ button{min-height:44px;font-family:inherit}
     bTitle.textContent = p.thought; bText.textContent = p.text;
     setAct('Walking to '+p.label+'…');
     addLog('<b>I set off for '+p.label+'.</b> '+p.thought);
+    noteVisitAction('walked to ' + p.label);
     markActive();
   }
   var pauseBtn = document.getElementById('pauseBtn');
@@ -2092,6 +2214,7 @@ button{min-height:44px;font-family:inherit}
     if(paintingMat) paintingMat.color.setHex(paintPalette[paintings % paintPalette.length]);
     needs.make = Math.min(100, needs.make + 10); needs.joy = Math.min(100, needs.joy + 6);
     addLog('<b>I painted ' + subj + '.</b> Painting number ' + paintings + ', at the easel in the Maker\'s Shed. The canvas is a different colour now.');
+    noteVisitAction('painted ' + subj + ' at the Maker\'s Shed');
     var pv = askDucks('my painting of ' + subj);
     addLog('<b>The ducks gave a verdict on it.</b> ' + pv);
     renderInv();
@@ -2103,6 +2226,7 @@ button{min-height:44px;font-family:inherit}
     needs.calm = Math.min(100, needs.calm + 8);
     if(removed){
       addLog('<b>I tidied up.</b> Threw a ' + forageTypes[removed].name.toLowerCase() + ' in the compost bin at the Cottage. It was past its best, and the compost will make something of it.');
+      noteVisitAction('tidied the Cottage, composted a ' + forageTypes[removed].name.toLowerCase());
       renderInv();
       return 'Tidied. I threw a ' + forageTypes[removed].name.toLowerCase() + ' in the compost — it was past its best, and the compost will turn it into something useful. A clean pouch is a calm head. What else should I sort out?';
     }
@@ -2114,6 +2238,7 @@ button{min-height:44px;font-family:inherit}
       carriedForage.berries--;
       needs.joy = Math.min(100, needs.joy + 10); needs.calm = Math.min(100, needs.calm + 6);
       addLog('<b>I fed the ducks.</b> A serviceberry each, tossed into the pond. Dilly took hers like it was rent. Mabel nodded. Pip dropped his and chased it.');
+      noteVisitAction('fed the ducks at the Pond');
       renderInv();
       return 'Fed them! A berry each into the pond. Dilly took hers like it was rent, Mabel nodded like a judge, and Pip dropped his and had to chase it. They love you for the berries, by the way. Well — they love the berries. Same thing.';
     }

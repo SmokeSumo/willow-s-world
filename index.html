@@ -655,15 +655,14 @@ button{min-height:44px;font-family:inherit}
   }
   function addFlavour(r){
     var out = r;
-    if(Math.random() < 0.35){
-      var d = livingDetail();
-      if(d && out.indexOf(d) === -1) out += ' ' + d;
-    }
-    if(Math.random() < 0.22){
-      out += ' ' + quirkAside();
-    }
-    if(Math.random() < 0.5){
+    /* No random detail lines: a reply about the ducks must not suddenly
+       mention the pouch, and a reply about the laptop must not swerve
+       into the library. Flavour only when it fits the reply itself. */
+    if(out.indexOf('?') === -1 && Math.random() < 0.4){
       out += ' ' + askSomething();
+    }
+    if(Math.random() < 0.10){
+      out += ' ' + quirkAside();
     }
     return out;
   }
@@ -688,6 +687,61 @@ button{min-height:44px;font-family:inherit}
      exposed here so the chat, which lives in the outer scope, can call
      them. initWorld fills these in when it starts. */
   var fernActions = {doPaint:null, doTidy:null, doFeedDucks:null, placeDetails:null};
+  /* Fern's actual opinions. She has a favourite for everything — a colour,
+     a food, a duck, a season — with a reason, so "what's your favourite X"
+     gets a real answer instead of "favourite what?" */
+  var favourites = {
+    color: [
+      "Green. The deep green of the ferns by the pond — I live in it, I wear it, I am it. What colour are you, out there?",
+      "Green, obviously. But if green's taken: the blue of the pond at dusk, right when it goes still. That's my second favourite and it knows it."
+    ],
+    food: [
+      "Berry mint tea. Serviceberries and mint, still warm. It tastes like the whole walk that found it.",
+      "Mushroom soup, when I have the bits. It feels like a real meal, not a snack I found on the ground."
+    ],
+    season: [
+      "Whichever one the serviceberries are ripe in. That's my whole calendar, really.",
+      "Late summer, when the berries are ripe and the pond is warm and the tomatoes are at their most undefeated. What's yours?"
+    ],
+    place: [
+      "The pond, at dusk, when the water goes still. Second place is the greenhouse, because the tomatoes are there and they cheer for me.",
+      "The library, when nobody's asking me anything. Just me and the books and the smell of old pages."
+    ],
+    duck: [
+      "Mabel. She takes her time and she never rushes a verdict. Dilly's the bold one, Pip's the baby — but Mabel is my favourite.",
+      "Pip, honestly. He's small and he follows everyone and he tries so hard. Don't tell Dilly."
+    ],
+    flower: [
+      "Wild rose. It smells like the walk to find it, and it doesn't apologise for the thorns. Chamomile's second — it tastes like bedtime.",
+      "Calendula. It's a little sun you can pick. I press them in the library book and they stay orange for ages."
+    ],
+    song: [
+      "Whatever I'm humming while I walk, which today is a little tune about the pond. It goes: la, la, duck, la. It's a work in progress, don't judge it yet.",
+      "I don't have a favourite song, I have a favourite hum — the one I make up on the walk over. Give me a real song and I'll steal the chorus."
+    ],
+    time: [
+      "Dusk. The pond goes still, the skyline lights up, and the ducks do their slow evening circles. Everything's softer then. What's your favourite time out there?",
+      "Early morning, before the sun's properly up. The world's still deciding what kind of day to be, and I get to watch it choose."
+    ],
+    book: [
+      "The one about stars the library gave me when I didn't ask for it. I stayed up reading it by the solar leaves until the ducks fell asleep. I still think about that book.",
+      "Any book the library hands me that I didn't ask for. Those are always the right ones. It knows me better than I do."
+    ]
+  };
+  function favouriteReply(t){
+    var key = null;
+    if(/colou?r/.test(t)) key = 'color';
+    else if(/food|eat|meal|recipe|drink|tea|soup/.test(t)) key = 'food';
+    else if(/season/.test(t)) key = 'season';
+    else if(/place|spot/.test(t)) key = 'place';
+    else if(/duck|dilly|mabel|pip/.test(t)) key = 'duck';
+    else if(/flower|plant/.test(t)) key = 'flower';
+    else if(/song|music|hum/.test(t)) key = 'song';
+    else if(/time of day|time of the day|morning|evening|dusk|night/.test(t)) key = 'time';
+    else if(/book/.test(t)) key = 'book';
+    if(!key) return null;
+    return pick(favourites[key]);
+  }
   function fernReply(raw){
     var t = ' ' + raw.toLowerCase() + ' ';
     rememberAboutB(t);
@@ -750,6 +804,13 @@ button{min-height:44px;font-family:inherit}
         "Dilly, Mabel and Pip are my pond committee. I ask them things and they just… float there, very wisely. I trust their judgment more than most people.",
         "Oh, the ducks are real now — three of them, in the water. Dilly's the bold one, Mabel takes her time, Pip follows everyone. Come sit at the pond with me sometime and you'll see."
       ]);
+    } else if(/favourite|favorite/.test(t)){
+      var fav = favouriteReply(t);
+      if(fav) r = fav;
+      else r = pick([
+        "Green — the deep green of the ferns by the pond. That's my default answer for 'favourite what', by the way. Ask me about food or ducks and I'll give you a whole ranking.",
+        "My favourite colour is green, my favourite food is berry mint tea, and my favourite duck is Mabel. Pick a category and I'll go deeper — I have a ranked list for all of them."
+      ]);
     } else if(/spearmint|peppermint|field mint|lemon balm|serviceberr|chokecherr|chanterelle|morel|oyster mushroom|calendula|elderflower|chamomile|nettle|yarrow|wild rose/.test(t)){
       var spName = t.match(/spearmint|peppermint|field mint|lemon balm|serviceberr[a-z]*|chokecherr[a-z]*|chanterelle[a-z]*|morel[a-z]*|oyster mushroom|calendula|elderflower|chamomile|nettle|yarrow|wild rose/);
       var key = spName ? spName[0].replace(/ies$/,'y').replace(/berries/,'berries') : null;
@@ -773,6 +834,12 @@ button{min-height:44px;font-family:inherit}
         "Ouch, but fair. Boring is the worst thing to be out here. Give me a topic — ducks, tomatoes, the library — and I'll do better than that.",
         "Noted, and honestly? You're right. I was stuck on a loop. Ask me something I haven't answered yet and watch me try.",
         "Okay, okay. New rule for me: no more canned answers. Hit me with something real and I'll answer like I mean it."
+      ]);
+    } else if(/that'?s not what i (said|meant)|not what i (said|meant)|i didn'?t say|i didn'?t mean|you'?re not listening|wrong answer/.test(t)){
+      r = pick([
+        "Okay — I got that wrong, then. Tell me what you actually meant and I'll listen properly this time. No ducks, no notebook, just me listening.",
+        "Fair. I was answering the wrong thing. Say it again, slower if you like, and I'll answer the thing you actually said.",
+        "You're right, that wasn't it. What did you mean? I'm putting the notebook down for this one."
       ]);
     } else if(/who are you|your name|what are you(?!\s+doing)|are you real|who made you|who controls you|simulation|are you a robot|are you ai/.test(t)){
       r = pick([
@@ -831,6 +898,14 @@ button{min-height:44px;font-family:inherit}
         "No question on the go right now. Send me to my laptop perch and I'll pick one up — my finished notes live in the Journal.",
         "My laptop's cold at the moment. Give me a question worth chasing and I'll warm it up.",
         "Nothing in progress. My notebook's open though, and my curiosity is doing that thing where it won't sit still."
+      ]);
+    } else if(/laptop|computer|your (screen|keyboard)|log (in|on)|google/.test(t)){
+      var doneQ = research.done.length ? research.done[research.done.length-1] : null;
+      r = pick([
+        "Oh, I use it — that's where the research happens. My laptop perch, my notebook, one question at a time. I looked up what clouds taste like there. Plain water. Still annoyed about it.",
+        "My laptop's where I do the real thinking. I sit at the perch, I pick a question from my notebook, I look it up properly, and the answer goes in the Journal. " + (doneQ ? "Last one I finished: \u201c" + doneQ.q + "\u201d — " + doneQ.note + " " : "") + "Give me a question and I'll take it to the perch.",
+        "All the time. It's how I found out ducks probably dream and the city at night is quieter, not silent. I sit, I read slow, I write the answer down in my own words. What should I look up next?",
+        "The laptop is my favourite tool and my least favourite chair. I perch there, I research, I write it in the Journal. The ducks can't reach me there, which is the whole point. Want me to look something up for you?"
       ]);
     } else if(/what are you doing|where are you|where you at|what's up|whats up/.test(t)){
       var det2 = livingDetail();
@@ -924,11 +999,13 @@ button{min-height:44px;font-family:inherit}
         "Send me to a place, ask me a question, or just talk. I'm better at all three than I was this morning, I promise."
       ]);
     } else if(/^(yes|yeah|yep|ok|okay|cool|nice|lol|haha|ha|oh|ah|hmm|mm|right)\b/.test(t.trim())){
+      var lastR = recentReplies.length ? recentReplies[recentReplies.length-1] : '';
+      var wasQ = lastR && lastR.indexOf('?') !== -1;
       r = pick([
-        "Ha — exactly. You get it.",
-        "Right? I thought so too.",
-        "Mm. See, this is why I like talking to you. Short, to the point, and then we move on.",
-        "Okay, noted. In the notebook. Underlined, even."
+        wasQ ? "Good, that's a yes then. I'll take it — what else? I'm still here, still listening." : "Okay. I'm listening — go on, what's the next bit?",
+        wasQ ? "Noted. I asked, you answered, the notebook is happy. What should we talk about next?" : "Got it. And then what happened? Give me the next part.",
+        "Mm. Okay, I'm with you. Keep going — I'm actually listening this time, notebook closed.",
+        "Right. Say more, I'm here. Short answers are fine, but I like the long ones better."
       ]);
     } else if(/what did you do today|how was your day|what'?s happening/.test(t)){
       var det = livingDetail();
@@ -938,12 +1015,6 @@ button{min-height:44px;font-family:inherit}
         "Today I " + (forageTotal > 0 ? "foraged " + forageTotal + " things, " : "wandered a lot, ") + (inv.tomatoes ? "checked on " + inv.tomatoes + " tomatoes, " : "") + "and talked to the ducks, obviously. " + (rec || "What did you get up to? I want the real version, not the headline."),
         "Busy, in my own small way. " + (placeName ? "I'm at " + placeName + ". " : "") + "I painted a bit, I looked at things properly, I threw something in the compost. " + wonderAloud()
       ]);
-    } else if(/favourite|favorite/.test(t)){
-      if(/duck/.test(t)) r = pick(["Mabel. She takes her time and she never rushes a verdict. Dilly's the bold one, Pip's the baby — but Mabel is my favourite.", "Pip, honestly. He's small and he follows everyone and he tries so hard. Don't tell Dilly."]);
-      else if(/place|spot/.test(t)) r = pick(["The pond, at dusk, when the water goes still. Second place is the greenhouse, because the tomatoes are there and they cheer for me.", "The library, when nobody's asking me anything. Just me and the books and the smell of old pages."]);
-      else if(/food|eat|meal|recipe/.test(t)) r = pick(["Berry mint tea. Serviceberries and mint, still warm. It tastes like the whole walk that found it.", "Mushroom soup, when I have the bits. It feels like a real meal, not a snack I found on the ground."]);
-      else if(/season/.test(t)) r = "Whichever one the serviceberries are ripe in. That's my whole calendar, really.";
-      else r = pick(["My favourite thing changes by the hour, but right now it's this conversation. Ask me again in an hour and I'll have a new one.", "Favourite what? Place, duck, food, season — I have a ranked list for all of them. Give me a category."]);
     } else if(/do you like|what do you think (about|of)/.test(t)){
       r = pick([
         "I like it, but I have questions. That's my whole way of liking things — I like it and then I interrogate it. What do you like about it?",

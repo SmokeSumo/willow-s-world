@@ -8,5 +8,62 @@
     ],
     "place": "Maker's Shed",
     "activity": "Wandering off-path, exploring"
+  },
+  {
+    "started_at": "2026-11-17T04:49:03.573Z",
+    "ended_at": "2026-11-17T04:49:59.503Z",
+    "chat": [
+      {
+        "from": "B",
+        "text": "Do you ever use your laptop?"
+      },
+      {
+        "from": "Fern",
+        "text": "I like that. It sounds like something the library would try to teach me and I'd pretend I already knew. What else? I've got 2 foraged things in my pouch \u2014 I keep checking they're still there."
+      },
+      {
+        "from": "B",
+        "text": "What\u2019s the duck\u2019s names?"
+      },
+      {
+        "from": "Fern",
+        "text": "Dilly, Mabel and Pip are my pond committee. I ask them things and they just\u2026 float there, very wisely. I trust their judgment more than most people. I've got 2 foraged things in my pouch \u2014 I keep checking they're still there."
+      },
+      {
+        "from": "B",
+        "text": "OK, what is your favourite color?"
+      },
+      {
+        "from": "Fern",
+        "text": "Right? I thought so too. What do you think the ducks would say about your day? I asked them about mine and Mabel took a full minute to decide."
+      },
+      {
+        "from": "B",
+        "text": "That\u2019s not what I said"
+      },
+      {
+        "from": "Fern",
+        "text": "That one sat with me for a second. The pond's good for sitting with things, but you're better. What were you doing when it crossed your mind? What's a song I should hum while I walk? I need new material."
+      },
+      {
+        "from": "B",
+        "text": "Yes"
+      },
+      {
+        "from": "Fern",
+        "text": "Ha \u2014 exactly. You get it."
+      }
+    ],
+    "actions": [
+      "walked to My Laptop Perch",
+      "foraged chanterelles at Chanterelle Corner",
+      "walked to My Cottage",
+      "foraged strawberries at Strawberry Patch",
+      "foraged raspberries at Raspberry Row",
+      "foraged elderflower at Elderflower Bush",
+      "walked to My Cottage"
+    ],
+    "place": "Cottage",
+    "activity": "Walking to My Cottage\u2026"
   }
 ]

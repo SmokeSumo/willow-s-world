@@ -1,1 +1,48 @@
-{"activity":"Foraging spearmint at Mint Corner","chest_cottage":[],"chest_shed":[],"destination":null,"diary_last":"My belly was grumbling, so I wandered over to Mint Corner and picked a handful of spearmint — sharp and fresh-smelling. With the berries already in my pouch, I can make berry mint tea at the Cottage next.","mood":"properly hungry","needs":{"calm":63,"company":45,"energy":58,"hunger":40,"joy":60,"make":49,"novelty":52,"rest":60,"wonder":59},"place":"Mint Corner","position":{"x":22,"z":22},"pouch":[{"count":1,"item":"berries"},{"count":1,"item":"mint"}],"updated_at":"2026-11-16T23:45:30-05:00"}
+{
+  "activity": "Walking to My Cottage\u2026",
+  "chest_cottage": [
+    {
+      "item": "berries",
+      "count": 1
+    },
+    {
+      "item": "mint",
+      "count": 1
+    },
+    {
+      "item": "mushroom",
+      "count": 2
+    }
+  ],
+  "chest_shed": [],
+  "destination": null,
+  "diary_last": "I set off for My Cottage. My eyes are getting heavy\u2026",
+  "mood": "wanting company",
+  "needs": {
+    "energy": 54,
+    "hunger": 34,
+    "rest": 79,
+    "company": 18,
+    "novelty": 25,
+    "make": 22,
+    "wonder": 44,
+    "joy": 33,
+    "calm": 54
+  },
+  "place": "Cottage",
+  "position": {
+    "x": -29,
+    "z": 15
+  },
+  "pouch": [
+    {
+      "item": "berries",
+      "count": 3
+    },
+    {
+      "item": "flower",
+      "count": 1
+    }
+  ],
+  "updated_at": "2026-11-17T04:49:59.502Z"
+}
